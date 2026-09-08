@@ -1,0 +1,423 @@
+<title>Building Rushour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ground:#F5F6F9; --surface:#FFFFFF; --surface-2:#EDEFF4;
+    --ink:#12161F; --ink-soft:#586074; --ink-faint:#878FA1;
+    --rule:#DCE0E9; --rule-strong:#C3C9D6;
+    --accent:#1B45C4; --accent-soft:#E6EAFA;
+    --done:#1B7A4B; --done-soft:#E4F2EA;
+    --gate:#A8371A; --gate-soft:#FAEAE4;
+    --hold:#7A5C11; --hold-soft:#F7F0DE;
+    --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+    --f-body:"Source Serif 4",Georgia,serif;
+    --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+    --measure:64ch;
+    --s1:.35rem; --s2:.65rem; --s3:1rem; --s4:1.6rem; --s5:2.6rem; --s6:4.2rem;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0E1117; --surface:#161A22; --surface-2:#1D222C;
+      --ink:#E4E8F0; --ink-soft:#98A1B4; --ink-faint:#6B7488;
+      --rule:#272D39; --rule-strong:#39414F;
+      --accent:#89A6FF; --accent-soft:#1B2338;
+      --done:#59C68B; --done-soft:#14271D;
+      --gate:#E8895C; --gate-soft:#2D1D16;
+      --hold:#D9B65C; --hold-soft:#2A2416;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0E1117; --surface:#161A22; --surface-2:#1D222C;
+    --ink:#E4E8F0; --ink-soft:#98A1B4; --ink-faint:#6B7488;
+    --rule:#272D39; --rule-strong:#39414F;
+    --accent:#89A6FF; --accent-soft:#1B2338;
+    --done:#59C68B; --done-soft:#14271D;
+    --gate:#E8895C; --gate-soft:#2D1D16;
+    --hold:#D9B65C; --hold-soft:#2A2416;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--f-body);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  a{color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  .wrap{max-width:60rem;margin:0 auto;padding:var(--s5) var(--s4) var(--s6)}
+  .prose{max-width:var(--measure)}
+
+  /* masthead */
+  .mast{border-top:3px solid var(--ink);padding-top:var(--s3);margin-bottom:var(--s4)}
+  .kicker{font-family:var(--f-mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:var(--s3);margin:0 0 var(--s4)}
+  h1{font-family:var(--f-display);font-weight:700;font-size:clamp(2.3rem,6vw,3.4rem);line-height:1;letter-spacing:-.03em;margin:0 0 var(--s3);text-wrap:balance}
+  .standfirst{font-size:1.15rem;line-height:1.5;color:var(--ink-soft);max-width:50ch;margin:0}
+
+  /* progress strip */
+  .progress{border-top:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong);margin:var(--s4) 0 var(--s5);padding:var(--s3) 0}
+  .progress-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s3)}
+  .progress-head p{margin:0;font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+  .progress-head strong{font-family:var(--f-display);font-size:1.5rem;font-weight:700;letter-spacing:-.02em}
+  .track{display:flex;gap:2px;height:12px}
+  .track span{flex:1;border-radius:2px;background:var(--surface-2)}
+  .track span.is-done{background:var(--done)}
+  .track span.is-now{background:var(--accent)}
+  .track-key{display:flex;flex-wrap:wrap;gap:var(--s3);margin-top:var(--s2);font-family:var(--f-mono);font-size:10.5px;color:var(--ink-faint)}
+  .track-key i{font-style:normal;display:inline-flex;align-items:center;gap:.35rem}
+  .swatch{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+  h2{font-family:var(--f-display);font-weight:700;font-size:1.5rem;letter-spacing:-.02em;line-height:1.15;margin:0;text-wrap:balance}
+  h3{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:var(--s5) 0 var(--s2)}
+  p{margin:0 0 var(--s3)}
+  code{font-family:var(--f-mono);font-size:.84em;background:var(--surface-2);padding:.1em .34em;border-radius:3px}
+
+  /* phase blocks */
+  .phase{margin-top:var(--s5);border:1px solid var(--rule);border-radius:5px;background:var(--surface);overflow:hidden}
+  .phase.now{border-color:var(--accent)}
+  .phase-head{display:grid;grid-template-columns:3.2rem 1fr auto;gap:var(--s3);align-items:baseline;padding:var(--s3) var(--s4);border-bottom:1px solid var(--rule)}
+  .phase.now .phase-head{background:var(--accent-soft)}
+  .phase-num{font-family:var(--f-mono);font-size:1.5rem;font-weight:700;letter-spacing:-.04em;color:var(--ink-faint)}
+  .phase.now .phase-num,.phase.done .phase-num{color:var(--accent)}
+  .phase.done .phase-num{color:var(--done)}
+  .phase-blurb{grid-column:2/-1;font-size:.95rem;color:var(--ink-soft);margin:.2rem 0 0;max-width:56ch}
+
+  .chip{font-family:var(--f-mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.22rem .5rem;border-radius:3px;white-space:nowrap}
+  .c-done{background:var(--done-soft);color:var(--done)}
+  .c-now{background:var(--accent);color:#fff}
+  .c-next{background:var(--surface-2);color:var(--ink-soft)}
+  .c-gated{background:var(--hold-soft);color:var(--hold)}
+
+  table{border-collapse:collapse;width:100%;font-size:.9rem}
+  .tw{overflow-x:auto}
+  th,td{text-align:left;padding:.62rem var(--s3);border-bottom:1px solid var(--rule);vertical-align:top}
+  th{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;background:var(--surface-2);white-space:nowrap}
+  tbody tr:last-child td{border-bottom:0}
+  td:first-child{padding-left:var(--s4)}
+  td:last-child{padding-right:var(--s4)}
+  .sid{font-family:var(--f-mono);font-size:11.5px;font-weight:700;color:var(--ink-faint);white-space:nowrap}
+  tr.is-done .sid{color:var(--done)}
+  tr.is-now .sid{color:var(--accent)}
+  .stage-what{font-family:var(--f-display);font-weight:600;font-size:.95rem;display:block;margin-bottom:.15rem}
+  .stage-done{color:var(--ink-soft);font-size:.87rem}
+  .stage-done b{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;display:block;margin-bottom:.1rem}
+  td.st{white-space:nowrap;width:1%}
+
+  .gatebar{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s2);padding:var(--s3) var(--s4);background:var(--gate-soft);border-top:1px solid var(--rule)}
+  .gatebar p{margin:0;font-size:.9rem;color:var(--ink)}
+  .gatebar span{font-family:var(--f-mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gate)}
+
+  .note{border-left:2px solid var(--rule-strong);padding:.1rem 0 .1rem var(--s3);margin:var(--s4) 0;color:var(--ink-soft);font-size:.95rem;max-width:var(--measure)}
+  .note b{color:var(--ink)}
+  ul{padding-left:1.15rem;margin:0 0 var(--s3);max-width:var(--measure)}
+  li{margin-bottom:.3rem}
+  footer{margin-top:var(--s6);padding-top:var(--s3);border-top:3px solid var(--ink);font-family:var(--f-mono);font-size:11px;color:var(--ink-faint);letter-spacing:.04em}
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <p class="kicker"><span>Delivery plan</span><span>8 Sep 2026</span><span>Companion to the build spec</span></p>
+    <h1>Building Rushour</h1>
+    <p class="standfirst">Eight phases, thirty-eight stages. Each stage is one sitting's work with a test you can actually run; each phase ends at a gate that is passed by using the thing, not by finishing the code.</p>
+  </div>
+
+  <div class="progress">
+    <div class="progress-head">
+      <p>Stages complete</p>
+      <strong class="tnum">18 / 38</strong>
+    </div>
+    <div class="track" role="img" aria-label="18 of 38 stages complete, 4 in progress">
+      <span class="is-done"></span><span class="is-done"></span>
+      <span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span></span>
+      <span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span>
+      <span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span class="is-now"></span><span class="is-now"></span><span class="is-now"></span><span class="is-now"></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </div>
+    <div class="track-key">
+      <i><span class="swatch" style="background:var(--done)"></span>done &amp; verified</i>
+      <i><span class="swatch" style="background:var(--accent)"></span>in progress</i>
+      <i><span class="swatch" style="background:var(--surface-2)"></span>queued</i>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Two rules make this plan different from a task list. <b>A stage is done when its check passes</b>, not when the code is written — every row below names one. And <b>a phase does not begin until the previous gate is passed by observed use</b>, which is the same admission control the product imposes on its user. Building all eight phases back to back would reproduce exactly the failure the product exists to fix.</p>
+  </div>
+
+  <!-- PHASE 0 -->
+  <section class="phase done">
+    <div class="phase-head">
+      <span class="phase-num">00</span>
+      <h2>Decide</h2>
+      <span class="chip c-done">Done</span>
+      <p class="phase-blurb">Before any code: what success means, and what will never be built.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Stage</th><th>Delivers</th><th>Done when</th><th class="st">Status</th></tr></thead>
+      <tbody>
+        <tr class="is-done"><td class="sid">0.1</td>
+          <td><span class="stage-what">North star &amp; counter-metrics</span></td>
+          <td class="stage-done"><b>Check</b>One metric named, with three counter-metrics that stop it being gamed.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">0.2</td>
+          <td><span class="stage-what">Kill list</span></td>
+          <td class="stage-done"><b>Check</b><code>docs/killlist.md</code> exists; adding to it requires deleting something shipped.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- PHASE 1 -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-num">01</span>
+      <h2>Skeleton</h2>
+      <span class="chip c-next">4 / 5</span>
+      <p class="phase-blurb">One thin slice through every layer, so nothing structural is discovered late.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Stage</th><th>Delivers</th><th>Done when</th><th class="st">Status</th></tr></thead>
+      <tbody>
+        <tr class="is-done"><td class="sid">1.1</td>
+          <td><span class="stage-what">Scaffold &amp; design tokens</span></td>
+          <td class="stage-done"><b>Check</b>Both themes render from one token set; no colour defined only inside a media query.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">1.2</td>
+          <td><span class="stage-what">The pure engine</span></td>
+          <td class="stage-done"><b>Check</b><code>lib/engine</code> imports nothing; tests green; the spec's 15h-into-6h example is refused.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">1.3</td>
+          <td><span class="stage-what">Data model &amp; connection</span></td>
+          <td class="stage-done"><b>Check</b>One node collection with a materialised path; connection cached on <code>globalThis</code>.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">1.4</td>
+          <td><span class="stage-what">Auth, split for the edge</span></td>
+          <td class="stage-done"><b>Check</b>Proxy guards the app routes without pulling mongoose or bcrypt into the Edge runtime.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr><td class="sid">1.5</td>
+          <td><span class="stage-what">Deploy &amp; Atlas</span></td>
+          <td class="stage-done"><b>Check</b>You can sign in on your own phone, on the real URL, over the real network.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="gatebar"><span>Gate</span><p>Signed in on a phone against the deployed build.</p></div>
+  </section>
+
+  <!-- PHASE 2 -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-num">02</span>
+      <h2>The loop</h2>
+      <span class="chip c-done">9 / 9 built</span>
+      <p class="phase-blurb">Clock in, plan against real capacity, work, clock out, seal. This alone tests the thesis.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Stage</th><th>Delivers</th><th>Done when</th><th class="st">Status</th></tr></thead>
+      <tbody>
+        <tr class="is-done"><td class="sid">2.1</td>
+          <td><span class="stage-what">Onboarding, three stages</span></td>
+          <td class="stage-done"><b>Check</b>Under four minutes end to end; stages 4–6 are derived from use, never asked.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">2.2</td>
+          <td><span class="stage-what">Clock in &amp; readiness</span></td>
+          <td class="stage-done"><b>Check</b>Three inputs, ≤90s; the score's components are shown; day one shows no invented recovery figure.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">2.3</td>
+          <td><span class="stage-what">Plan &amp; the capacity block</span></td>
+          <td class="stage-done"><b>Check</b>An over-capacity plan cannot be committed by any path; overage stated in h:mm.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">2.4</td>
+          <td><span class="stage-what">Active session, one timer</span></td>
+          <td class="stage-done"><b>Check</b>Two tasks can never both be active; an abandoned timer truncates to the last heartbeat.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">2.5</td>
+          <td><span class="stage-what">Clock out, seal, calibrate</span></td>
+          <td class="stage-done"><b>Check</b>Sealed sessions reject writes; the multiplier moves off the prior after one real observation.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">2.6</td>
+          <td><span class="stage-what">The closed day</span></td>
+          <td class="stage-done"><b>Check</b>Planned against actual with no red anywhere; going long reads as evidence, not failure.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">2.7</td>
+          <td><span class="stage-what">Goals &amp; admission control</span></td>
+          <td class="stage-done"><b>Check</b>A third active goal is refused at the write path, not just hidden in the UI.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">2.8</td>
+          <td><span class="stage-what">Auto-close</span></td>
+          <td class="stage-done"><b>Check</b>A forgotten clock-out never reaches calibration or the completion metric.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">2.9</td>
+          <td><span class="stage-what">Lapse re-entry</span></td>
+          <td class="stage-done"><b>Check</b>Returning after two weeks shows under twelve words of history and no backlog.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="gatebar"><span>Gate — the one that matters</span><p>Dogfood three weeks. Used on five days a week or more, unprompted.</p></div>
+  </section>
+
+  <!-- PHASE 3 -->
+  <section class="phase now">
+    <div class="phase-head">
+      <span class="phase-num">03</span>
+      <h2>Dashboard &amp; progress</h2>
+      <span class="chip c-now">In progress</span>
+      <p class="phase-blurb">The Home tab: where the day stands, then what the record says. Built to be honest at n=1 and to fill in as evidence arrives.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Stage</th><th>Delivers</th><th>Done when</th><th class="st">Status</th></tr></thead>
+      <tbody>
+        <tr class="is-done"><td class="sid">3.1</td>
+          <td><span class="stage-what">Success metrics engine</span></td>
+          <td class="stage-done"><b>Check</b>Rates return null rather than zero with no evidence; shrinking ambition is detected, so the north star cannot be gamed.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">3.2</td>
+          <td><span class="stage-what">Chart components</span></td>
+          <td class="stage-done"><b>Check</b>One hue for magnitude, a recessive reference track, no dual axis, hover on every mark.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-done"><td class="sid">3.3</td>
+          <td><span class="stage-what">Dashboard query</span></td>
+          <td class="stage-done"><b>Check</b>Days without a session are counted as gaps, not omitted — omitting them inflates every rate.</td>
+          <td class="st"><span class="chip c-done">Done</span></td></tr>
+        <tr class="is-now"><td class="sid">3.4</td>
+          <td><span class="stage-what">Home tab &amp; tab bar</span></td>
+          <td class="stage-done"><b>Check</b>Day state sits above the statistics, so the next action is never buried under numbers. Empty states read as sentences, not zeros.</td>
+          <td class="st"><span class="chip c-now">Now</span></td></tr>
+        <tr class="is-now"><td class="sid">3.5</td>
+          <td><span class="stage-what">Streak, with earned rest days</span></td>
+          <td class="stage-done"><b>Check</b>Counts showing up, not perfection. One missed day cannot zero it while a rest day is banked.</td>
+          <td class="st"><span class="chip c-now">Next</span></td></tr>
+        <tr class="is-now"><td class="sid">3.6</td>
+          <td><span class="stage-what">Levels from real behaviour</span></td>
+          <td class="stage-done"><b>Check</b>Finishing at the minimum tier earns progress, so a bad day still advances you.</td>
+          <td class="st"><span class="chip c-now">Next</span></td></tr>
+        <tr class="is-now"><td class="sid">3.7</td>
+          <td><span class="stage-what">Achievements</span></td>
+          <td class="stage-done"><b>Check</b>Every badge marks a behaviour the product exists to cause — cutting an oversized plan, a calibrated week — never mere usage.</td>
+          <td class="st"><span class="chip c-now">Next</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="gatebar"><span>Gate</span><p>The Home tab tells you something you did not already know about your own week.</p></div>
+  </section>
+
+  <!-- PHASE 4 -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-num">04</span>
+      <h2>The learning layer</h2>
+      <span class="chip c-gated">Gated on 03</span>
+      <p class="phase-blurb">Where the app stops recording and starts adapting.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Stage</th><th>Delivers</th><th>Done when</th><th class="st">Status</th></tr></thead>
+      <tbody>
+        <tr><td class="sid">4.1</td><td><span class="stage-what">Calibration everywhere</span></td>
+          <td class="stage-done"><b>Check</b>Every estimate field shows "you said 1h — expect 1h 25m", with its confidence.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">4.2</td><td><span class="stage-what">Weekly review &amp; narrative</span></td>
+          <td class="stage-done"><b>Check</b>The paragraph contains no number absent from its input payload.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">4.3</td><td><span class="stage-what">Load adaptation</span></td>
+          <td class="stage-done"><b>Check</b>The change is announced and accepted, never silent; overridable for one week only.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">4.4</td><td><span class="stage-what">Rescue mode</span></td>
+          <td class="stage-done"><b>Check</b>Changes what is surfaced; the sealed plan is untouched, so the gap survives for review.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">4.5</td><td><span class="stage-what">Notifications</span></td>
+          <td class="stage-done"><b>Check</b>The evening nudge arrives on a phone. Prompts are load-bearing; without them the loop has a missing leg.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="gatebar"><span>Gate</span><p>The overage prediction beats your own gut, on a week you did not plan carefully.</p></div>
+  </section>
+
+  <!-- PHASE 5 -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-num">05</span>
+      <h2>Habits &amp; readiness</h2>
+      <span class="chip c-gated">Gated on 04</span>
+      <p class="phase-blurb">Behaviour over weeks, once there is enough of it to read.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Stage</th><th>Delivers</th><th>Done when</th><th class="st">Status</th></tr></thead>
+      <tbody>
+        <tr><td class="sid">5.1</td><td><span class="stage-what">Habit logging on the session</span></td>
+          <td class="stage-done"><b>Check</b>Logged at clock-in or clock-out, adding no new screen and no new minute.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">5.2</td><td><span class="stage-what">Drift, not streaks</span></td>
+          <td class="stage-done"><b>Check</b>States drift in plain numbers, then asks one question about cause.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">5.3</td><td><span class="stage-what">Sleep consistency</span></td>
+          <td class="stage-done"><b>Check</b>Shows the arithmetic of a wake target against actual bedtimes. No advice, no diagnosis.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">5.4</td><td><span class="stage-what">Monthly rollup</span></td>
+          <td class="stage-done"><b>Check</b>Goal progress rolls up through the node path in one query.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="gatebar"><span>Gate</span><p>Two further weeks of use without the loop degrading.</p></div>
+  </section>
+
+  <!-- PHASE 6 -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-num">06</span>
+      <h2>Growth</h2>
+      <span class="chip c-gated">Gated on 05</span>
+      <p class="phase-blurb">The answer to "there are a hundred things to learn and I don't know where to start."</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Stage</th><th>Delivers</th><th>Done when</th><th class="st">Status</th></tr></thead>
+      <tbody>
+        <tr><td class="sid">6.1</td><td><span class="stage-what">Skill map from evidence</span></td>
+          <td class="stage-done"><b>Check</b>Levels are derived from completed work, never from a self-rated percentage.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">6.2</td><td><span class="stage-what">Bottleneck detection</span></td>
+          <td class="stage-done"><b>Check</b>Names the one skill blocking progress, and the evidence for saying so.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">6.3</td><td><span class="stage-what">Learning into the plan</span></td>
+          <td class="stage-done"><b>Check</b>A skill gap becomes a task on a real day with a real estimate, or it does not exist.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- PHASE 7 -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-num">07</span>
+      <h2>Radar</h2>
+      <span class="chip c-gated">Reconsider first</span>
+      <p class="phase-blurb">Jobs and information. A separate data pipeline with its own maintenance, coupled to nothing in the loop.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Stage</th><th>Delivers</th><th>Done when</th><th class="st">Status</th></tr></thead>
+      <tbody>
+        <tr><td class="sid">7.1</td><td><span class="stage-what">Job pipeline</span></td>
+          <td class="stage-done"><b>Check</b>Produces a weekly application quota, not a browsable list.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">7.2</td><td><span class="stage-what">Relevance by embedding</span></td>
+          <td class="stage-done"><b>Check</b>Items are scored against active goals nightly, in a batch, not by a chat call.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+        <tr><td class="sid">7.3</td><td><span class="stage-what">Capped digest</span></td>
+          <td class="stage-done"><b>Check</b>Ten minutes a day, hard-capped. If it can scroll forever, it has failed.</td>
+          <td class="st"><span class="chip c-next">Queued</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <div class="prose">
+    <h3>On the two newest additions</h3>
+    <p>The dashboard and the streak both arrived after the spec was written, and both cut against something in it. That is fine, but worth being explicit about so the reasoning is not lost.</p>
+    <ul>
+      <li><b>The dashboard</b> softens "land on clock-in, never a dashboard". The resolution in 3.4: the day's state sits <em>above</em> the statistics, so Home answers "what now" before it answers "how am I doing".</li>
+      <li><b>The streak</b> is on the kill list, and the objection stands — a broken streak becomes a reason to quit. Stage 3.5 keeps the pull and removes the trap: it counts showing up rather than perfection, and banks rest days so one missed day cannot zero it.</li>
+    </ul>
+    <div class="note"><b>The discipline to keep.</b> Every figure on the dashboard must still trace to something the user entered, and no badge may reward mere usage. The moment a number exists to be grown rather than to be read, this becomes the kind of app the whole thing was a reaction against.</div>
+  </div>
+
+  <footer>Rushour delivery plan · 18 of 38 stages · next: 3.4 Home tab</footer>
+</div>
