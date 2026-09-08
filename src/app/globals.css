@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+  Rushour's surface is a working tool, not a document: scanned and operated.
+  State is encoded in form as well as number, so what needs attention reads at
+  a glance without the user parsing a figure.
+*/
+@theme {
+  --color-ground: #f5f6f9;
+  --color-surface: #ffffff;
+  --color-surface-2: #edeff4;
+  --color-ink: #12161f;
+  --color-ink-soft: #586074;
+  --color-ink-faint: #878fa1;
+  --color-rule: #dce0e9;
+  --color-rule-strong: #c3c9d6;
+  --color-accent: #1b45c4;
+  --color-accent-soft: #e6eafa;
+  --color-over: #a8371a;
+  --color-over-soft: #faeae4;
+  --color-ok: #1b7a4b;
+  --color-ok-soft: #e4f2ea;
+  --color-hold: #7a5c11;
+  --color-hold-soft: #f7f0de;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-serif4), Georgia, serif;
+  --font-mono: var(--font-jbmono), ui-monospace, Menlo, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @theme {
+    --color-ground: #0e1117;
+    --color-surface: #161a22;
+    --color-surface-2: #1d222c;
+    --color-ink: #e4e8f0;
+    --color-ink-soft: #98a1b4;
+    --color-ink-faint: #6b7488;
+    --color-rule: #272d39;
+    --color-rule-strong: #39414f;
+    --color-accent: #89a6ff;
+    --color-accent-soft: #1b2338;
+    --color-over: #e8895c;
+    --color-over-soft: #2d1d16;
+    --color-ok: #59c68b;
+    --color-ok-soft: #14271d;
+    --color-hold: #d9b65c;
+    --color-hold-soft: #2a2416;
   }
 }
 
+html {
+  color-scheme: light dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Numbers that sit in columns must line up. */
+.tnum {
+  font-variant-numeric: tabular-nums;
 }

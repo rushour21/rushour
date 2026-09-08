@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rushour
 
-## Getting Started
+A personal execution system. It does not help you plan more — it works out what
+actually fits in your day, holds you to it, then learns how much you can really do.
 
-First, run the development server:
+The full specification is in [`docs/spec.html`](docs/spec.html).
+
+## Running it
 
 ```bash
+docker compose up -d          # MongoDB on :27017
+cp .env.example .env.local    # then set AUTH_SECRET
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`AUTH_SECRET` can be generated with `openssl rand -base64 32`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`OPENAI_API_KEY` is optional. Every AI call site has a working fallback, so the
+app runs without it — you type the things it would have drafted.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test          # the engine
+npm run build
+```
 
-## Learn More
+## How it is put together
 
-To learn more about Next.js, take a look at the following resources:
+The one rule that shapes the codebase: **`src/lib/engine` imports nothing.** No
+Mongo, no OpenAI, no React, no Node built-ins. Every number the product shows —
+capacity, the estimation multiplier, readiness, drift, ranking, next week's load
+— is computed there, by a pure function, and is therefore reproducible,
+explainable and free.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+That buys two things. The engine is the only part with real test coverage, and
+the same code runs in the browser, so the capacity verdict updates as you type
+without a round trip. The server runs the identical function as the authority.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/lib/engine/      pure: capacity, calibration, readiness, drift, ranking, adaptation
+src/lib/ai/          five call sites, each with a non-AI fallback
+src/lib/actions/     server actions: validate -> engine -> persist
+src/lib/db/models/   User, Node, Session, Review
+src/app/today/       clock in -> plan -> work -> clock out -> closed
+```
 
-## Deploy on Vercel
+### The Day Session
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Clock in and clock out are the boundary the rest hangs off. The session is the
+unit of planning, of measurement and of review, which is what makes `localDate`
+rather than a UTC range the answer to "did I do it today", and what produces
+actual durations without asking anyone to keep a timesheet.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A session is sealed on clock-out. The plan, the actuals and the reasons become
+immutable — the measured gap between planned and actual is the entire product,
+and a plan that can be edited afterwards erases its own evidence.
+
+### Where AI is, and is not
+
+Five call sites: goal-tree drafting, task breakdown, if–then intentions, the
+weekly narrative, and feed relevance. All of them are language in or language
+out. None is on the critical path of a write.
+
+The weekly narrative is given only the computed figures and is rejected if it
+states a number that was not in them (`groundedInNumbers`). One invented
+statistic would cost every real one its authority.
+
+No score, ranking or percentage anywhere in the product comes from a model.

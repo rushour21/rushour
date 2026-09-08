@@ -1,0 +1,11 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: rushour-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - rushour-mongo:/data/db
+
+volumes:
+  rushour-mongo:

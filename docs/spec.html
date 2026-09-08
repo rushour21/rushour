@@ -1,0 +1,854 @@
+<title>Rushour Execution System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ground:#F5F6F9;
+    --surface:#FFFFFF;
+    --surface-2:#EDEFF4;
+    --ink:#12161F;
+    --ink-soft:#586074;
+    --ink-faint:#878FA1;
+    --rule:#DCE0E9;
+    --rule-strong:#C3C9D6;
+    --accent:#1B45C4;
+    --accent-soft:#E6EAFA;
+    --over:#A8371A;
+    --over-soft:#FAEAE4;
+    --ok:#1B7A4B;
+    --ok-soft:#E4F2EA;
+    --hold:#7A5C11;
+    --hold-soft:#F7F0DE;
+
+    --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+    --f-body:"Source Serif 4",Georgia,"Times New Roman",serif;
+    --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+    --measure:66ch;
+    --s1:.35rem; --s2:.65rem; --s3:1rem; --s4:1.6rem; --s5:2.6rem; --s6:4.2rem;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0E1117;
+      --surface:#161A22;
+      --surface-2:#1D222C;
+      --ink:#E4E8F0;
+      --ink-soft:#98A1B4;
+      --ink-faint:#6B7488;
+      --rule:#272D39;
+      --rule-strong:#39414F;
+      --accent:#89A6FF;
+      --accent-soft:#1B2338;
+      --over:#E8895C;
+      --over-soft:#2D1D16;
+      --ok:#59C68B;
+      --ok-soft:#14271D;
+      --hold:#D9B65C;
+      --hold-soft:#2A2416;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0E1117;
+    --surface:#161A22;
+    --surface-2:#1D222C;
+    --ink:#E4E8F0;
+    --ink-soft:#98A1B4;
+    --ink-faint:#6B7488;
+    --rule:#272D39;
+    --rule-strong:#39414F;
+    --accent:#89A6FF;
+    --accent-soft:#1B2338;
+    --over:#E8895C;
+    --over-soft:#2D1D16;
+    --ok:#59C68B;
+    --ok-soft:#14271D;
+    --hold:#D9B65C;
+    --hold-soft:#2A2416;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--f-body);
+    font-size:17px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  a{color:var(--accent);text-underline-offset:.18em;text-decoration-thickness:.06em}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+
+  /* ---------- shell ---------- */
+  .shell{max-width:1240px;margin:0 auto;padding:0 var(--s4) var(--s6)}
+  @media(min-width:1080px){
+    .shell{display:grid;grid-template-columns:15rem minmax(0,1fr);gap:var(--s6);align-items:start}
+    .rail{position:sticky;top:var(--s4);padding-top:var(--s6)}
+  }
+  .rail{font-family:var(--f-mono);font-size:11.5px;line-height:1.5}
+  .rail-h{font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 var(--s3)}
+  .rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s1)}
+  .rail a{display:grid;grid-template-columns:1.9rem 1fr;gap:.3rem;color:var(--ink-soft);text-decoration:none;padding:.22rem 0;border-top:1px solid var(--rule)}
+  .rail a:hover{color:var(--accent)}
+  .rail a span:first-child{color:var(--ink-faint)}
+  @media(max-width:1079px){.rail{display:none}}
+
+  main{min-width:0;padding-top:var(--s5)}
+  .prose{max-width:var(--measure)}
+
+  /* ---------- masthead ---------- */
+  .mast{border-top:3px solid var(--ink);padding-top:var(--s3);margin-bottom:var(--s5)}
+  .mast .kicker{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:var(--s3);margin-bottom:var(--s4)}
+  h1{font-family:var(--f-display);font-weight:700;font-size:clamp(2.6rem,7vw,4.2rem);line-height:.98;letter-spacing:-.032em;margin:0 0 var(--s3);text-wrap:balance}
+  .standfirst{font-size:1.24rem;line-height:1.5;color:var(--ink-soft);max-width:52ch;margin:0}
+
+  /* ---------- headings ---------- */
+  section{margin-top:var(--s6);scroll-margin-top:1.5rem}
+  h2{font-family:var(--f-display);font-weight:700;font-size:1.92rem;letter-spacing:-.02em;line-height:1.12;margin:0 0 var(--s3);text-wrap:balance;
+     display:grid;grid-template-columns:2.6rem 1fr;gap:.4rem;align-items:baseline}
+  h2 .num{font-family:var(--f-mono);font-size:.82rem;font-weight:500;color:var(--accent);letter-spacing:.02em}
+  h3{font-family:var(--f-display);font-weight:600;font-size:1.16rem;letter-spacing:-.008em;margin:var(--s5) 0 var(--s2);text-wrap:balance}
+  h4{font-family:var(--f-display);font-weight:600;font-size:1rem;margin:0}
+  p{margin:0 0 var(--s3)}
+  .lede{font-size:1.06rem;color:var(--ink-soft)}
+  strong{font-weight:600}
+  .prose ul,.prose ol{max-width:var(--measure);padding-left:1.15rem;margin:0 0 var(--s3)}
+  .prose li{margin-bottom:.35rem}
+  code{font-family:var(--f-mono);font-size:.84em;background:var(--surface-2);padding:.1em .34em;border-radius:3px}
+
+  /* ---------- rules / labels ---------- */
+  .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 var(--s2)}
+
+  /* ---------- at a glance ---------- */
+  .facts{border-top:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong);margin:var(--s4) 0}
+  .facts dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:0;margin:0}
+  .facts div{padding:var(--s3) var(--s3) var(--s3) 0;border-right:1px solid var(--rule)}
+  .facts div:last-child{border-right:0}
+  .facts dt{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.3rem}
+  .facts dd{margin:0;font-family:var(--f-display);font-weight:600;font-size:.98rem;line-height:1.35}
+  .facts dd em{font-style:normal;font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+
+  /* ---------- flow chips ---------- */
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;font-family:var(--f-mono);font-size:12px;margin:var(--s4) 0;padding:var(--s3);background:var(--surface);border:1px solid var(--rule);border-radius:4px}
+  .flow b{font-weight:500;background:var(--surface-2);border:1px solid var(--rule);padding:.32rem .55rem;border-radius:3px;white-space:nowrap}
+  .flow b.hot{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+  .flow i{font-style:normal;color:var(--ink-faint)}
+
+  /* ---------- requirement blocks ---------- */
+  .req{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);border-radius:0 4px 4px 0;padding:var(--s3) var(--s4);margin:var(--s3) 0}
+  .req.def{border-left-color:var(--rule-strong)}
+  .req > header{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s2);margin-bottom:var(--s2);padding-bottom:var(--s2);border-bottom:1px solid var(--rule)}
+  .req-id{font-family:var(--f-mono);font-size:11.5px;font-weight:700;color:var(--accent);letter-spacing:.04em}
+  .req.def .req-id{color:var(--ink-faint)}
+  .req > header h4{flex:1;min-width:12rem}
+  .chip{font-family:var(--f-mono);font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:.16rem .42rem;border-radius:3px;white-space:nowrap}
+  .p0{background:var(--over-soft);color:var(--over)}
+  .p1{background:var(--accent-soft);color:var(--accent)}
+  .p2{background:var(--surface-2);color:var(--ink-soft)}
+  .req dl{display:grid;grid-template-columns:6.2rem minmax(0,1fr);gap:.3rem var(--s3);margin:0;font-size:.95rem}
+  .req dt{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);padding-top:.42em}
+  .req dd{margin:0}
+  .req dd code{background:transparent;padding:0;color:var(--ink)}
+  .req dd.mono{font-family:var(--f-mono);font-size:12.5px;line-height:1.55;white-space:pre-wrap;overflow-x:auto}
+
+  /* ---------- code / schema ---------- */
+  pre{font-family:var(--f-mono);font-size:12.5px;line-height:1.62;background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:var(--s3);overflow-x:auto;margin:var(--s3) 0}
+  pre b{color:var(--accent);font-weight:500}
+  pre i{color:var(--ink-faint);font-style:normal}
+
+  /* ---------- tables ---------- */
+  .tw{overflow-x:auto;margin:var(--s3) 0;border:1px solid var(--rule);border-radius:4px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:34rem}
+  th,td{text-align:left;padding:.6rem var(--s3);border-bottom:1px solid var(--rule);vertical-align:top}
+  th{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;background:var(--surface-2);white-space:nowrap}
+  tbody tr:last-child td{border-bottom:0}
+  td.mono,th.mono{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td .req-id{font-size:11px}
+
+  /* ---------- callout ---------- */
+  .note{border-left:2px solid var(--rule-strong);padding:.15rem 0 .15rem var(--s3);margin:var(--s4) 0;color:var(--ink-soft);font-size:.97rem;max-width:var(--measure)}
+  .note b{color:var(--ink)}
+  .warn{border-left-color:var(--over)}
+  .warn b{color:var(--over)}
+
+  /* ---------- phase table emphasis ---------- */
+  .gate{font-family:var(--f-mono);font-size:11.5px;color:var(--over);font-weight:500}
+  .done{color:var(--ok)}
+  hr{border:0;border-top:1px solid var(--rule);margin:var(--s5) 0}
+  footer{margin-top:var(--s6);padding-top:var(--s3);border-top:3px solid var(--ink);font-family:var(--f-mono);font-size:11.5px;color:var(--ink-faint);letter-spacing:.04em}
+</style>
+
+<div class="shell">
+<nav class="rail" aria-label="Sections">
+  <p class="rail-h">Contents</p>
+  <ol>
+    <li><a href="#s1"><span>01</span><span>Thesis &amp; principles</span></a></li>
+    <li><a href="#s2"><span>02</span><span>The Day Session</span></a></li>
+    <li><a href="#s3"><span>03</span><span>Requirements</span></a></li>
+    <li><a href="#s4"><span>04</span><span>Architecture</span></a></li>
+    <li><a href="#s5"><span>05</span><span>Data model</span></a></li>
+    <li><a href="#s6"><span>06</span><span>The engine</span></a></li>
+    <li><a href="#s7"><span>07</span><span>AI boundary</span></a></li>
+    <li><a href="#s8"><span>08</span><span>Build phases</span></a></li>
+    <li><a href="#s9"><span>09</span><span>Kill list</span></a></li>
+    <li><a href="#s10"><span>10</span><span>Open questions</span></a></li>
+  </ol>
+</nav>
+
+<main>
+  <div class="mast">
+    <p class="kicker"><span>Build specification</span><span>v1.0 &middot; 8 Sep 2026</span><span>Next.js &middot; MongoDB &middot; OpenAI</span></p>
+    <h1>Rushour</h1>
+    <p class="standfirst">A personal execution system. It does not help you plan more — it makes you plan less and finish what you planned, then learns how much you can actually do.</p>
+  </div>
+
+  <div class="facts">
+    <dl>
+      <div><dt>North star</dt><dd>Plan-completion <em>&ge;70%</em> in week 4, ambition unchanged</dd></div>
+      <div><dt>v1 surface</dt><dd>Day Session, Goals, Plan, Review — <em>4 screens</em></dd></div>
+      <div><dt>AI budget</dt><dd><em>5</em> call sites, ~<em>$0.04</em> / user / month</dd></div>
+      <div><dt>Time budget</dt><dd>Clock in <em>90s</em> &middot; out <em>60s</em> &middot; weekly <em>5m</em></dd></div>
+    </dl>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <section id="s1">
+    <h2><span class="num">01</span><span>Thesis &amp; principles</span></h2>
+    <div class="prose">
+      <p class="lede">The failure being solved is not missing information. It is too many competing priorities, plans written for a person with more hours than the user has, and no feedback that connects the two.</p>
+      <p>So the product is a loop, and every screen exists to advance it:</p>
+    </div>
+
+    <div class="flow">
+      <b class="hot">Clock in</b><i>&rarr;</i><b>Choose the outcome</b><i>&rarr;</i><b>Capacity check</b><i>&rarr;</i><b>Execute</b><i>&rarr;</i><b class="hot">Clock out</b><i>&rarr;</i><b>Diagnose</b><i>&rarr;</i><b>Adjust next plan</b><i>&crarr;</i>
+    </div>
+
+    <div class="prose">
+      <h3>Seven principles that bind every decision below</h3>
+      <ol>
+        <li><b>Arithmetic is code, never a model.</b> Capacity, calibration, readiness, drift and ranking are pure functions. They must be reproducible and explainable on demand.</li>
+        <li><b>A plan is a record, not a view.</b> Plans are written once and never mutated. The product's entire value is the measured gap between planned and actual; a mutable plan deletes its own evidence.</li>
+        <li><b>Admission control is a write constraint.</b> Two active goals maximum, enforced in the data layer. A limit that lives in the UI is a suggestion, and every user overrides it in week one.</li>
+        <li><b>The error is the plan, not the person.</b> Incomplete work is never red. Overage is attributed to the plan that was too big.</li>
+        <li><b>Every field names the decision it changes.</b> If a datum alters no recommendation, it is not collected. This deletes most of a conventional health tracker.</li>
+        <li><b>Screens have time budgets.</b> Exceeding one is a bug with the same severity as a crash.</li>
+        <li><b>Cold start is designed, not endured.</b> Day one uses borrowed priors and shrinks toward personal data as it arrives.</li>
+      </ol>
+
+      <h3>Measurement</h3>
+      <p>One north star: <b>plan-completion rate &ge;70% by week 4 with stated ambition unchanged.</b> Ambition must be held constant, or the metric is gamed by planning nothing.</p>
+      <p>Three counter-metrics that must not degrade:</p>
+      <ul>
+        <li>Time in app trends <b>down</b> week over week after week 2.</li>
+        <li>Active goal count stays at <b>&le;2</b> without the user fighting the constraint.</li>
+        <li>Planned tasks per day converges toward observed completion, not upward.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section id="s2">
+    <h2><span class="num">02</span><span>The Day Session</span></h2>
+    <div class="prose">
+      <p class="lede">Clock in and clock out are not two buttons. They are the boundary object the whole system hangs off — the unit of planning, the unit of measurement, and the unit of review.</p>
+      <p>Introducing it solves four problems that are otherwise unsolved:</p>
+      <ul>
+        <li><b>The day boundary.</b> "Did I do it today?" becomes a question about a session, not a UTC range. Travel and DST stop mattering.</li>
+        <li><b>Actuals without logging.</b> Nobody reliably records how long things took. A session with one active task at a time derives duration for free.</li>
+        <li><b>Real available time.</b> Capacity stops being a self-reported estimate and becomes <em>clock-in to planned clock-out, minus committed blocks</em> — an observed window.</li>
+        <li><b>A trigger for rescue.</b> Rescue mode fires on remaining session time, not on an arbitrary 7&nbsp;PM cron.</li>
+      </ul>
+
+      <h3>Lifecycle</h3>
+    </div>
+
+    <div class="flow">
+      <b>NONE</b><i>&rarr; clock in &rarr;</i><b class="hot">OPEN</b><i>&rarr; pause &rarr;</i><b>PAUSED</b><i>&rarr; resume &rarr;</i><b class="hot">OPEN</b><i>&rarr; clock out &rarr;</i><b>CLOSED</b><i>&nbsp;|&nbsp; 04:00 next day &rarr;</i><b>AUTO_CLOSED</b>
+    </div>
+
+    <div class="prose">
+      <p>A session carries the plan, the readiness snapshot, the task timers, and the closing review. One session per local day is the norm; a second <em>resume</em> after clock-out is permitted and appends a segment rather than opening a new session, so split shifts and evening work do not fragment the record.</p>
+
+      <h3>Clock in — 90 second budget</h3>
+      <p>Three readiness fields, then the plan. Nothing else is ever added to this screen.</p>
+      <ol>
+        <li>Hours slept last night (stepper, prefilled from the last value)</li>
+        <li>Energy 1&ndash;5, Stress 1&ndash;5 (two taps)</li>
+        <li>Planned clock-out time (prefilled from the rolling median of the last 14 sessions)</li>
+        <li>Today's one outcome, then 1&ndash;3 supporting tasks with Minimum / Target / Stretch tiers</li>
+      </ol>
+      <p>The capacity verdict renders live as tasks are added, because the engine runs in the browser. A plan that exceeds the session window cannot be committed (<span class="req-id">REQ-032</span>).</p>
+
+      <h3>During the session</h3>
+      <p>Exactly one task may be <em>active</em>. Starting a second stops the first. The header shows time remaining in the session and adjusted demand remaining, both counting down. When remaining demand exceeds remaining time by more than 20%, Rescue offers itself once — not repeatedly.</p>
+
+      <h3>Clock out — 60 second budget</h3>
+      <ol>
+        <li>Confirm or correct actual minutes on at most three items (slider, prefilled from timers)</li>
+        <li>For anything unfinished, one tap from a fixed reason list — this is the diagnostic payload</li>
+        <li>Tomorrow's one thing (optional, one line)</li>
+      </ol>
+      <p>On close the session is sealed: plan, actuals and reasons become immutable, and calibration, drift and adaptation recompute.</p>
+
+      <div class="note warn"><b>Failure mode to design for:</b> the user forgets to clock out. Auto-close at 04:00 local marks <code>closedBy:"auto"</code>, discards timer tails beyond the last observed activity, and excludes the session from calibration — an unreviewed session must never poison the personal multiplier.</div>
+    </div>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section id="s3">
+    <h2><span class="num">03</span><span>Requirements</span></h2>
+    <p class="lede prose">Each block is buildable and testable by someone who did not write it. <span class="chip p0">P0</span> ships in v1; <span class="chip p1">P1</span> follows a passed gate; <span class="chip p2">P2</span> is specified but deferred.</p>
+
+    <h3>A &middot; Identity &amp; onboarding</h3>
+
+    <article class="req" id="REQ-001">
+      <header><span class="req-id">REQ-001</span><h4>Staged onboarding</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>First authenticated session</dd>
+        <dt>Input</dt><dd>Stage 1 identity (name, timezone, occupation); Stage 2 direction (free text: what to improve, target role); Stage 3 constraints (sleep target, work hours, commute, meals, life)</dd>
+        <dt>Compute</dt><dd>Stages 4&ndash;6 are <b>not</b> collected at signup. Health baseline is derived from the first seven clock-ins; behaviour baseline from the first two weeks of sessions</dd>
+        <dt>Output</dt><dd>Profile document; user lands on Clock In, never on a dashboard</dd>
+        <dt>Edge</dt><dd>Abandon mid-stage &rarr; resume at the same stage; stages 1&ndash;3 are each independently persisted</dd>
+        <dt>Done when</dt><dd>Onboarding completes in under 4 minutes measured, and a first plan can be committed immediately after</dd>
+        <dt>Not doing</dt><dd>Asking for nutrition, caffeine, alcohol, steps, or self-rated skill percentages</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-002">
+      <header><span class="req-id">REQ-002</span><h4>Direction to goal tree</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Stage 2 submitted</dd>
+        <dt>Input</dt><dd>Free text, plus chosen categories</dd>
+        <dt>Compute</dt><dd>AI call site 1 (§07). Structured output: year direction &rarr; quarter objectives &rarr; first month outcome, per category</dd>
+        <dt>Output</dt><dd>Editable draft tree; nothing is saved until the user confirms</dd>
+        <dt>Edge</dt><dd>Model unavailable &rarr; manual entry form with the same shape. AI is never a hard dependency of any write path</dd>
+        <dt>Done when</dt><dd>Draft is visibly labelled as a draft and every node is editable and deletable before save</dd>
+      </dl>
+    </article>
+
+    <h3>B &middot; Goals &amp; admission control</h3>
+
+    <article class="req" id="REQ-010">
+      <header><span class="req-id">REQ-010</span><h4>Two active goals maximum</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Any write setting <code>node.status = "active"</code> where <code>type = "year"</code></dd>
+        <dt>Compute</dt><dd>Count active year nodes for the user inside the transaction</dd>
+        <dt>Output</dt><dd>Count &gt; 2 &rarr; write rejected with the list of currently active goals and a required choice: park one, or cancel</dd>
+        <dt>Edge</dt><dd>A goal parked within the last 7 days may be reactivated without counting as a new commitment (undo, not churn)</dd>
+        <dt>Done when</dt><dd>A third active goal cannot be created through the UI, a server action, or a direct API call</dd>
+        <dt>Not doing</dt><dd>Choosing which goal to park on the user's behalf</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-011">
+      <header><span class="req-id">REQ-011</span><h4>The Later list</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Goal rejected by <span class="req-id">REQ-010</span>, or user files an idea directly</dd>
+        <dt>Output</dt><dd>Node stored with <code>status:"later"</code>, excluded from every plan, ranking and review surface</dd>
+        <dt>Done when</dt><dd>Later items appear on exactly one screen and never in a notification</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-013">
+      <header><span class="req-id">REQ-013</span><h4>Ancestor chain on every task</h4><span class="chip p1">P1</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Task detail opened</dd>
+        <dt>Compute</dt><dd>Single query on the materialised <code>path</code> array (§05)</dd>
+        <dt>Output</dt><dd>Task &rarr; week &rarr; month &rarr; quarter &rarr; year, rendered as one line answering "why am I doing this"</dd>
+        <dt>Done when</dt><dd>Rendering the chain costs one round trip and no client-side joins</dd>
+      </dl>
+    </article>
+
+    <h3>C &middot; Day Session</h3>
+
+    <article class="req" id="REQ-020">
+      <header><span class="req-id">REQ-020</span><h4>Clock in</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>User taps Clock in; no OPEN session exists</dd>
+        <dt>Input</dt><dd><code>sleepHours</code>, <code>energy 1-5</code>, <code>stress 1-5</code>, <code>plannedClockOut</code></dd>
+        <dt>Compute</dt><dd class="mono">localDate = now in profile.timezone
+readiness = readinessScore(sleep, energy, stress, recovery)   §06.3
+window    = plannedClockOut - now
+available = window - committedBlocksInWindow - buffer(12%)</dd>
+        <dt>Output</dt><dd>Session document, state <code>OPEN</code>; readiness band drives the day's load ceiling</dd>
+        <dt>Edge</dt><dd>Clock in between 00:00 and 04:00 local attributes the session to the <em>previous</em> local date, and asks once to confirm</dd>
+        <dt>Edge</dt><dd>An existing OPEN session &rarr; no new session; user is routed to Today</dd>
+        <dt>Done when</dt><dd>Clocking in and committing a plan completes in &le;90s on a phone, measured end to end</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-021">
+      <header><span class="req-id">REQ-021</span><h4>Single active task timer</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Start pressed on a planned task</dd>
+        <dt>Compute</dt><dd>Any other active task is stopped and its segment closed. Segments are append-only <code>{startedAt, endedAt}</code>; actual minutes are their sum</dd>
+        <dt>Output</dt><dd>Task marked active; session header shows elapsed and remaining</dd>
+        <dt>Edge</dt><dd>Tab closed or device sleeps &rarr; segment is closed by the server at the last heartbeat, not left running</dd>
+        <dt>Edge</dt><dd>A segment exceeding 4h without a heartbeat is truncated to the last heartbeat and flagged <code>suspect:true</code>; suspect segments are excluded from calibration</dd>
+        <dt>Done when</dt><dd>Two tasks can never both be active, including across two open devices</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-022">
+      <header><span class="req-id">REQ-022</span><h4>Clock out and seal</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>User taps Clock out on an OPEN session</dd>
+        <dt>Input</dt><dd>Confirmed actual minutes (max 3 prompts, prefilled from timers); one reason per unfinished item from the fixed list; optional tomorrow line</dd>
+        <dt>Compute</dt><dd>Seal session (immutable), then recompute calibration (§06.2), habit drift (§06.4) and the rolling weekly aggregate</dd>
+        <dt>Output</dt><dd>State <code>CLOSED</code>, <code>closedBy:"user"</code>; one-screen summary showing planned vs actual as a single bar, no red</dd>
+        <dt>Edge</dt><dd>Clock out with zero completed work is a valid, non-judgemental outcome and still collects a reason</dd>
+        <dt>Done when</dt><dd>Sealed sessions reject all subsequent writes except an explicit, audited correction within 24h</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-023">
+      <header><span class="req-id">REQ-023</span><h4>Auto-close</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Cron, hourly: any OPEN session whose local time has passed 04:00 of the following day</dd>
+        <dt>Compute</dt><dd>Close open segments at the last heartbeat; do not credit unlogged time</dd>
+        <dt>Output</dt><dd>State <code>AUTO_CLOSED</code>; <code>reviewed:false</code>; excluded from calibration and from completion-rate statistics</dd>
+        <dt>Edge</dt><dd>Next clock-in offers a 20-second retro-review of the auto-closed session, once, skippable</dd>
+        <dt>Done when</dt><dd>A forgotten clock-out never distorts the personal multiplier or the north-star metric</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-024">
+      <header><span class="req-id">REQ-024</span><h4>Resume after clock out</h4><span class="chip p1">P1</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>User clocks in again on a date that already has a CLOSED session</dd>
+        <dt>Compute</dt><dd>Append a segment to the existing session; do not create a second session or a second plan</dd>
+        <dt>Output</dt><dd>Session reopens as <code>OPEN</code>; the sealed plan is unchanged, additional actuals attach to it</dd>
+        <dt>Done when</dt><dd>Split shifts produce one day record with two segments, and daily statistics count the day once</dd>
+      </dl>
+    </article>
+
+    <h3>D &middot; Planning &amp; capacity</h3>
+
+    <article class="req" id="REQ-030">
+      <header><span class="req-id">REQ-030</span><h4>Minimum / Target / Stretch</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Any task is created</dd>
+        <dt>Input</dt><dd>Three durations; Minimum is required, and defaults to 25% of Target</dd>
+        <dt>Compute</dt><dd>Capacity demand uses <b>Target</b>. Readiness band LOW substitutes <b>Minimum</b> for every task in the day's ceiling</dd>
+        <dt>Output</dt><dd>Completion at Minimum counts as a completed task, not a partial failure</dd>
+        <dt>Done when</dt><dd>A LOW-readiness day can be fully completed at Minimum tier and reports 100% completion</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-032">
+      <header><span class="req-id">REQ-032</span><h4>Capacity check blocks the commit</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Commit pressed on a day or week plan</dd>
+        <dt>Input</dt><dd>Planned items with Target estimates; session window or 168h week; profile fixed blocks</dd>
+        <dt>Compute</dt><dd class="mono">available = window - fixed - buffer(12% day / 15% week)
+demand    = SUM(target_i) * personalMultiplier      §06.2
+verdict   = available - demand</dd>
+        <dt>Output</dt><dd><code>verdict &lt; 0</code> &rarr; commit blocked. Shown: overage in h:mm, the sentence "You are scheduling X into Y", and the cut list. User cuts or defers until <code>verdict &ge; 0</code></dd>
+        <dt>Edge</dt><dd><code>demand &lt; 50% available</code> &rarr; non-blocking "underplanned" note; never blocks</dd>
+        <dt>Edge</dt><dd>No calibration data (<code>n &lt; 5</code>) &rarr; prior multiplier 1.40, and the multiplier is labelled "estimated"</dd>
+        <dt>Done when</dt><dd>An over-capacity plan cannot be committed by any path, and the overage is always stated in hours and minutes</dd>
+        <dt>Not doing</dt><dd>Deciding what to cut</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-034">
+      <header><span class="req-id">REQ-034</span><h4>If&ndash;then plan on obstacle</h4><span class="chip p1">P1</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>A task is unfinished twice, or the user names an obstacle</dd>
+        <dt>Compute</dt><dd>AI call site 3 (§07). Structured output: <code>{cue, response}</code></dd>
+        <dt>Output</dt><dd>Stored on the task, surfaced at the moment the cue occurs, never in a digest</dd>
+        <dt>Done when</dt><dd>Every generated intention names an observable cue, not a feeling</dd>
+      </dl>
+    </article>
+
+    <h3>E &middot; Execution &amp; rescue</h3>
+
+    <article class="req" id="REQ-040">
+      <header><span class="req-id">REQ-040</span><h4>What next</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Today screen, no task active</dd>
+        <dt>Compute</dt><dd>Deterministic ranking function §06.5 over the committed plan only</dd>
+        <dt>Output</dt><dd>One task, with the one-line reason it won ("fits your remaining 40 minutes; due Thursday")</dd>
+        <dt>Edge</dt><dd>Nothing fits the remaining block &rarr; offer the Minimum tier of the top-ranked item</dd>
+        <dt>Done when</dt><dd>The same inputs always produce the same recommendation and the reason is always shown</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-041">
+      <header><span class="req-id">REQ-041</span><h4>Rescue mode</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Remaining adjusted demand exceeds remaining session time by &gt;20%. Offered once per session</dd>
+        <dt>Compute</dt><dd>Rank by §06.5, fill the remaining window greedily at Minimum tier, defer the remainder</dd>
+        <dt>Output</dt><dd>A revised schedule for the rest of the session and an explicit "moved to tomorrow" list. The original plan stays sealed and is <b>not</b> rewritten</dd>
+        <dt>Edge</dt><dd>Declining rescue never re-prompts that session</dd>
+        <dt>Done when</dt><dd>Rescue changes what is <em>surfaced</em>, and the recorded plan-versus-actual gap remains intact for review</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-042">
+      <header><span class="req-id">REQ-042</span><h4>Lapse re-entry</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Clock in after 3+ consecutive days with no session</dd>
+        <dt>Output</dt><dd>A single screen: no backlog, no statistics, no streak language. One question — "what is the one thing for today?" Deferred items stay deferred and silent</dd>
+        <dt>Compute</dt><dd>Capacity ceiling for the first returning day is set to 60% of computed available</dd>
+        <dt>Done when</dt><dd>Returning after two weeks away shows fewer than 12 words of history</dd>
+      </dl>
+    </article>
+
+    <h3>F &middot; Habits</h3>
+
+    <article class="req" id="REQ-050">
+      <header><span class="req-id">REQ-050</span><h4>Drift detection, not streaks</h4><span class="chip p1">P1</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Habit logged on clock-in or clock-out</dd>
+        <dt>Compute</dt><dd>Least-squares slope over the last 14 observations of deviation-from-target, in minutes §06.4</dd>
+        <dt>Output</dt><dd>Slope &gt; 4 min/day and mean deviation &gt; 20 min &rarr; state the drift in plain numbers and ask for one reason from a fixed list</dd>
+        <dt>Done when</dt><dd>No streak counter exists anywhere in the product</dd>
+      </dl>
+    </article>
+
+    <h3>G &middot; Readiness</h3>
+
+    <article class="req" id="REQ-060">
+      <header><span class="req-id">REQ-060</span><h4>Readiness sets the day's ceiling</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Clock in, after the three inputs</dd>
+        <dt>Compute</dt><dd>§06.3. Bands: <code>&ge;75 HIGH &rarr; x1.00</code>, <code>50&ndash;74 MEDIUM &rarr; x0.80</code>, <code>&lt;50 LOW &rarr; x0.55</code> applied to available minutes</dd>
+        <dt>Output</dt><dd>Band, the four component scores, and the weights — always inspectable</dd>
+        <dt>Edge</dt><dd>Sleep target &lt; 7h entered &rarr; state the arithmetic of the resulting sleep window; do not moralise, do not diagnose</dd>
+        <dt>Done when</dt><dd>Every number in the score can be traced to an input the user gave, and the formula is visible in the UI</dd>
+        <dt>Not doing</dt><dd>Any claim of clinical or medical meaning</dd>
+      </dl>
+    </article>
+
+    <h3>H &middot; Review &amp; adaptation</h3>
+
+    <article class="req" id="REQ-070">
+      <header><span class="req-id">REQ-070</span><h4>Weekly review</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Sunday cron, or user-initiated. 5 minute budget</dd>
+        <dt>Input</dt><dd>Sealed sessions for the week</dd>
+        <dt>Compute</dt><dd>Planned vs completed minutes; completion rate; reason histogram; dominant failure pattern; calibration change</dd>
+        <dt>Output</dt><dd>The numbers, then one AI paragraph (call site 4, §07) constrained to the computed figures</dd>
+        <dt>Edge</dt><dd>Fewer than 3 sealed sessions &rarr; show the numbers, skip the narrative</dd>
+        <dt>Done when</dt><dd>The narrative contains no number absent from its input payload</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-072">
+      <header><span class="req-id">REQ-072</span><h4>Automatic load adaptation</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Weekly review sealed</dd>
+        <dt>Compute</dt><dd class="mono">u' = clamp(u + 0.5*(completionRate - 0.80), 0.50, 0.95)</dd>
+        <dt>Output</dt><dd>Next week's ceiling is <code>available x u'</code>. The change is stated: "Reducing next week's planned load by 14%"</dd>
+        <dt>Edge</dt><dd>Change is capped at &plusmn;15% per week, so one anomalous week cannot collapse the ceiling</dd>
+        <dt>Done when</dt><dd>The user is told the adjustment and can override it for one week only</dd>
+      </dl>
+    </article>
+
+    <article class="req" id="REQ-074">
+      <header><span class="req-id">REQ-074</span><h4>Estimation calibration</h4><span class="chip p0">P0</span></header>
+      <dl>
+        <dt>Trigger</dt><dd>Session sealed with at least one completed, non-suspect task</dd>
+        <dt>Compute</dt><dd>Shrinkage estimator §06.2 over the last 40 ratios</dd>
+        <dt>Output</dt><dd>Personal multiplier, shown wherever an estimate is entered: "you said 1h — expect 1h 25m"</dd>
+        <dt>Edge</dt><dd>Clamped to <code>[0.8, 3.0]</code>; sessions that were auto-closed or contain suspect segments are excluded</dd>
+        <dt>Done when</dt><dd>The multiplier is stable within &plusmn;0.05 across a week once <code>n &ge; 20</code></dd>
+      </dl>
+    </article>
+
+    <h3>Specified, deferred</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th class="mono">ID</th><th>Requirement</th><th>Module</th><th class="mono">Phase</th><th>Why it waits</th></tr></thead>
+        <tbody>
+          <tr><td class="mono"><span class="req-id">REQ-052</span></td><td>Cue &rarr; action &rarr; result habit chain</td><td>Habits</td><td class="mono">4</td><td>Needs 3 weeks of session data to be meaningful</td></tr>
+          <tr><td class="mono"><span class="req-id">REQ-062</span></td><td>Sleep consistency trend</td><td>Readiness</td><td class="mono">4</td><td>Requires 14 clock-ins minimum</td></tr>
+          <tr><td class="mono"><span class="req-id">REQ-076</span></td><td>Monthly review and goal-progress rollup</td><td>Review</td><td class="mono">4</td><td>Nothing to roll up before month two</td></tr>
+          <tr><td class="mono"><span class="req-id">REQ-080</span></td><td>Skill map with derived evidence</td><td>Growth</td><td class="mono">5</td><td>Evidence comes from completed tasks; needs a corpus</td></tr>
+          <tr><td class="mono"><span class="req-id">REQ-082</span></td><td>Bottleneck detection across skills</td><td>Growth</td><td class="mono">5</td><td>Depends on <span class="req-id">REQ-080</span></td></tr>
+          <tr><td class="mono"><span class="req-id">REQ-090</span></td><td>Job pipeline with weekly application quota</td><td>Radar</td><td class="mono">6</td><td>Separate data pipeline; zero coupling to the loop</td></tr>
+          <tr><td class="mono"><span class="req-id">REQ-091</span></td><td>Information diet, 10-minute capped digest</td><td>Radar</td><td class="mono">6</td><td>Ingestion and dedup is its own product</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section id="s4">
+    <h2><span class="num">04</span><span>Architecture</span></h2>
+    <div class="prose">
+      <p class="lede">One rule governs the layout: the engine knows nothing about Mongo, OpenAI, React or Node, so it runs identically on the server and in the browser.</p>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Layer</th><th>Choice</th><th>Reasoning</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Framework</td><td>Next.js 15, App Router</td><td>Server components for read-heavy dashboards; server actions for mutations</td></tr>
+          <tr><td class="mono">Database</td><td>MongoDB Atlas, Mongoose</td><td>User-scoped documents, flexible session shape, append-only logs</td></tr>
+          <tr><td class="mono">Auth</td><td>Auth.js, JWT session</td><td>No extra store; middleware guards <code>/(app)</code></td></tr>
+          <tr><td class="mono">Engine</td><td>Pure TypeScript</td><td>Isomorphic; live capacity preview with no round trip</td></tr>
+          <tr><td class="mono">AI</td><td>OpenAI, 5 call sites</td><td>Structured outputs for 3, prose for 1, embeddings for 1</td></tr>
+          <tr><td class="mono">Scheduler</td><td>Vercel Cron &rarr; route handlers</td><td>Auto-close, evening nudge, weekly review, digest</td></tr>
+          <tr><td class="mono">Validation</td><td>Zod at every boundary</td><td>Server actions and AI responses are both untrusted input</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <pre>src/
+  app/
+    (auth)/          <i>sign-in, sign-up</i>
+    (onboarding)/    <i>stages 1-3</i>
+    (app)/
+      today/         <i>clock in | active session | clock out</i>
+      goals/         <i>tree, admission control, Later list</i>
+      review/        <i>weekly</i>
+      settings/
+    api/
+      cron/          <b>auto-close</b> &middot; <b>nudge</b> &middot; <b>weekly</b>   <i>(Vercel Cron)</i>
+      ai/            <i>streaming narrative only</i>
+  lib/
+    engine/          <b>NO imports of mongo, openai, react, node</b>
+      capacity.ts calibration.ts readiness.ts
+      drift.ts ranking.ts adaptation.ts
+      __tests__/     <i>the only place with real unit tests in v1</i>
+    db/
+      client.ts      <i>globalThis-cached connection</i>
+      models/        <i>User Node Session Habit Log Review</i>
+    ai/
+      client.ts contracts.ts   <i>zod schemas per call site</i>
+    actions/         <i>server actions, thin: validate &rarr; engine &rarr; persist</i>
+</pre>
+
+    <div class="prose">
+      <h3>Write path</h3>
+    </div>
+    <div class="flow">
+      <b>Client form</b><i>&rarr;</i><b>Server action</b><i>&rarr;</i><b>Zod parse</b><i>&rarr;</i><b class="hot">Engine (pure)</b><i>&rarr;</i><b>Mongo write</b><i>&rarr;</i><b>revalidatePath</b>
+    </div>
+    <div class="prose">
+      <p>The same engine call runs client-side during editing to render the capacity verdict live. Server-side it runs again as the authority — the client result is a preview and is never trusted.</p>
+      <div class="note"><b>Connection caching.</b> Cache the Mongoose connection promise on <code>globalThis</code>. Without it, dev hot reload opens a new connection per module reload and Atlas rate-limits the project within an hour.</div>
+      <p><b>Cron is not optional.</b> Prompts and cues are one of the load-bearing mechanisms in this design, and Next.js has no scheduler. Auto-close (<span class="req-id">REQ-023</span>) in particular is a correctness requirement, not a nicety — without it, forgotten sessions corrupt calibration.</p>
+    </div>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section id="s5">
+    <h2><span class="num">05</span><span>Data model</span></h2>
+    <div class="prose">
+      <p class="lede">Three modelling decisions carry the whole schema. Get these wrong and the product cannot compute its own value proposition.</p>
+      <ol>
+        <li><b>One node collection, not five.</b> Year through task in a single collection with a materialised ancestor path. Rollups and ancestor chains each become one indexed query; five collections make every rollup a five-way join, which is what Mongo is worst at.</li>
+        <li><b>Estimates are written once.</b> <code>estimateTarget</code> is never overwritten. Actual minutes live in a separate field. Calibration is impossible otherwise.</li>
+        <li><b>Sealed sessions are immutable.</b> The gap between plan and actual <em>is</em> the product; a mutable plan erases its own evidence.</li>
+      </ol>
+    </div>
+
+    <pre><b>users</b>
+  _id, email, name, timezone, occupation
+  profile: { sleepTargetH, workH, commuteH, mealsH, lifeH }
+  planning: { utilization: 0.80, multiplier: 1.40, multiplierN: 0 }
+  readinessWeights: { sleep:.35, energy:.30, stress:.20, recovery:.15 }
+  createdAt
+
+<b>nodes</b>                                <i>year | quarter | month | week | day | task</i>
+  _id, userId, type, title
+  parentId, path:[ObjectId]              <i>materialised ancestors</i>
+  status: active | later | done | parked | cancelled
+  weight: 1..5
+  estimateMin:   { minimum, target, stretch }   <i>write-once</i>
+  actualMin, suspect: false
+  ifThen: { cue, response } | null
+  dueAt, completedAt, createdAt
+  <i>idx</i> { userId, type, status }  { userId, path }  { userId, dueAt }
+  <i>partial unique</i> { userId, type:"year", status:"active" } &rarr; enforce max 2 in txn
+
+<b>sessions</b>                             <i>one per local day, the day boundary</i>
+  _id, userId, localDate: "2026-09-08"
+  state: OPEN | PAUSED | CLOSED | AUTO_CLOSED
+  clockInAt, plannedClockOutAt, clockOutAt, closedBy: user|auto
+  readiness: { sleepH, energy, stress, score, band }
+  capacity:  { windowMin, fixedMin, bufferMin, availableMin, ceilingMin }
+  plan: {                                <i>SEALED on clock-out</i>
+    outcomeNodeId,
+    items: [{ nodeId, title, estimateTarget, estimateMinimum, tierCommitted }],
+    demandMin, verdictMin, committedAt
+  }
+  segments: [{ nodeId, startedAt, endedAt, suspect }]     <i>append-only</i>
+  actuals:  [{ nodeId, actualMin, tierReached, reason }]
+  reasons:  [ overscheduled | unexpected | distracted | low_energy |
+              underestimated | blocked | procrastinated ]
+  reviewed: bool
+  <i>idx</i> { userId, localDate } unique   { userId, state }
+
+<b>habitLogs</b>
+  _id, userId, habitId, localDate, targetAt, actualAt, deviationMin, reason
+  <i>idx</i> { userId, habitId, localDate }
+
+<b>reviews</b>
+  _id, userId, isoWeek: "2026-W37"
+  stats: { plannedMin, completedMin, completionRate, reasonHistogram,
+           dominantPattern, multiplierBefore, multiplierAfter,
+           utilizationBefore, utilizationAfter }
+  narrative: string | null                <i>AI, constrained to stats</i>
+  sealedAt
+  <i>idx</i> { userId, isoWeek } unique</pre>
+
+    <div class="note"><b>Timezone rule.</b> Every timestamp is UTC. Every daily-scoped document also carries <code>localDate</code> as a plain string in the user's timezone. "Today" is a calendar question, and UTC ranges break across DST and travel.</div>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section id="s6">
+    <h2><span class="num">06</span><span>The engine</span></h2>
+    <div class="prose"><p class="lede">Six pure functions. Every formula below is inspectable in the UI, because a number the user cannot audit is a number they will stop believing.</p></div>
+
+    <pre><i>6.1 capacity</i>
+capacity({window, fixed, items, multiplier, utilization, readinessBand})
+  buffer     = window * 0.12
+  available  = (window - fixed - buffer) * utilization * bandFactor
+  demand     = SUM(item.estimateTarget) * multiplier
+  <b>verdict    = available - demand</b>        <i>&lt; 0 blocks the commit</i>
+
+<i>6.2 calibration — shrinkage toward a global prior</i>
+calibrate(ratios)
+  r_i        = actualMin_i / estimateTarget_i        <i>completed, non-suspect</i>
+  personal   = exp( mean( ln r_i ) )                 <i>geometric: ratios, not sums</i>
+  n          = min(count, 40)
+  k          = 12                                    <i>prior strength</i>
+  <b>multiplier = exp( (n*ln(personal) + k*ln(1.40)) / (n + k) )</b>
+  clamp [0.8, 3.0]
+  <i>n=0 &rarr; 1.40 exactly. n=12 &rarr; halfway to personal. n=40 &rarr; 77% personal.</i>
+
+<i>6.3 readiness</i>
+readiness({sleepH, sleepTargetH, energy, stress, yesterdayLoad})
+  sleepScore    = clamp01(sleepH / sleepTargetH) * 100
+  energyScore   = energy * 20
+  stressScore   = (6 - stress) * 20
+  recoveryScore = yesterdayLoad &lt;= 1 ? 100 : clamp01(2 - yesterdayLoad) * 100
+  <b>score = .35*sleep + .30*energy + .20*stress + .15*recovery</b>
+  band  = score &gt;= 75 ? HIGH(x1.00) : score &gt;= 50 ? MEDIUM(x0.80) : LOW(x0.55)
+
+<i>6.4 drift</i>
+drift(observations[14])                              <i>deviation from target, minutes</i>
+  slope = leastSquaresSlope(dayIndex, deviationMin)
+  <b>alert = slope &gt; 4 AND |mean(deviation)| &gt; 20</b>
+  <i>reports "drifting ~7 min later per day, now 41 min past target"</i>
+
+<i>6.5 ranking — what next</i>
+score(task, ctx) =
+    0.30 * goalWeight/5
+  + 0.25 * 1/(daysUntilDue + 1)
+  + 0.20 * (adjEstimate &lt;= blockRemaining ? 1 : 0.2)
+  + 0.15 * energyFit(task.demand, ctx.band)
+  - 0.10 * (task.goalId !== ctx.currentGoalId ? 1 : 0)     <i>switch cost</i>
+
+<i>6.6 adaptation — proportional controller, target 80%</i>
+adapt(utilization, completionRate)
+  <b>u' = clamp(u + 0.5*(completionRate - 0.80), 0.50, 0.95)</b>
+  delta capped at +/-0.15 per week</pre>
+
+    <div class="prose">
+      <p>Two details worth defending. Calibration uses a <b>geometric</b> mean because these are ratios — an arithmetic mean lets one 5&times; overrun dominate permanently. And it shrinks toward 1.40 rather than starting at 1.0, so the app is useful on day one and converges on the individual by roughly week three.</p>
+      <p>Adaptation is a proportional controller aimed at 80% completion, correcting half the error each week. Full correction oscillates; half converges.</p>
+    </div>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section id="s7">
+    <h2><span class="num">07</span><span>AI boundary</span></h2>
+    <div class="prose"><p class="lede">Five call sites. Language in, or language out — never arithmetic, never a ranking, never a score.</p></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th class="mono">#</th><th>Call site</th><th>Shape</th><th class="mono">Frequency</th><th>Fallback</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td>Direction text &rarr; goal tree draft</td><td>structured output</td><td class="mono">1 / user</td><td>Manual form</td></tr>
+          <tr><td class="mono">2</td><td>Outcome &rarr; 3&ndash;6 tasks with draft estimates</td><td>structured output</td><td class="mono">~2 / day</td><td>Type them</td></tr>
+          <tr><td class="mono">3</td><td>Obstacle &rarr; if&ndash;then intention</td><td>structured output</td><td class="mono">~1 / week</td><td>Template</td></tr>
+          <tr><td class="mono">4</td><td>Weekly stats &rarr; one diagnostic paragraph</td><td>prose, streamed</td><td class="mono">1 / week</td><td>Numbers only</td></tr>
+          <tr><td class="mono">5</td><td>Feed item vs active goals</td><td>embeddings + cosine</td><td class="mono">nightly batch</td><td>Keyword match</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="prose">
+      <h3>Never AI</h3>
+      <p>Capacity, calibration, readiness, drift, ranking, rescue scheduling, adaptation, and every percentage displayed anywhere in the product. These are §06.</p>
+
+      <h3>The constraint on call site 4</h3>
+      <p>The narrative receives only the computed stats object and is instructed to use no figure that is not in it. Output is validated: any number appearing in the prose that is absent from the payload fails the response and falls back to numbers-only. If the app invents one statistic, every real one loses its authority.</p>
+
+      <h3>Three hard rules</h3>
+      <ul>
+        <li>No AI call is on a write path's critical line. Every site has a working non-AI fallback, because a model outage must never prevent someone clocking in.</li>
+        <li>All structured output is parsed through Zod before touching the database. A model response is untrusted input.</li>
+        <li>AI output is always presented as a draft that the user edits before it is saved.</li>
+      </ul>
+      <p>At these volumes a small model for sites 1&ndash;3, one weekly paragraph, and batched embeddings land at roughly <b>4 cents per user per month</b>. Putting a chat box on every screen instead costs dollars and makes worse decisions.</p>
+    </div>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section id="s8">
+    <h2><span class="num">08</span><span>Build phases</span></h2>
+    <div class="prose"><p class="lede">Gated, not scheduled. A phase does not begin until the previous gate is passed by observed usage — the same admission control the product imposes on its user.</p></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th class="mono">Phase</th><th>Scope</th><th>Gate to pass</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">0</td><td>North-star metric agreed. Kill list written to <code>docs/killlist.md</code></td><td class="gate">Both files exist</td></tr>
+          <tr><td class="mono">1</td><td>Walking skeleton: auth, Mongo connection, engine package with tests, one screen writing and reading one real document</td><td class="gate">Deployed; sign in on a phone</td></tr>
+          <tr><td class="mono">2</td><td><b>The loop.</b> Onboarding 1&ndash;3, Day Session (clock in / active / clock out / auto-close), capacity check, goal admission control, lapse re-entry</td><td class="gate">Dogfood 3 weeks &middot; used &ge;5 days/wk</td></tr>
+          <tr><td class="mono">3</td><td>Learning layer: calibration, weekly review, load adaptation, rescue mode</td><td class="gate">Overage prediction beats your gut</td></tr>
+          <tr><td class="mono">4</td><td>Habits with drift, sleep/energy/stress trends, monthly rollup</td><td class="gate">2 further weeks of use</td></tr>
+          <tr><td class="mono">5</td><td>Growth: skill map with derived evidence, bottleneck detection</td><td class="gate">&mdash;</td></tr>
+          <tr><td class="mono">6</td><td>Radar: job pipeline, information diet</td><td class="gate">Reconsider whether to build at all</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="prose">
+      <p>The gate between phases 2 and 3 is the one that matters. If the plan &rarr; execute &rarr; review loop does not hold its author for three weeks, no additional module will fix that. If it does, personal usage identifies the next module far more reliably than this document can.</p>
+    </div>
+  </section>
+
+  <!-- ============ 9 ============ -->
+  <section id="s9">
+    <h2><span class="num">09</span><span>Kill list</span></h2>
+    <div class="prose">
+      <p class="lede">Written down so it stops being reconsidered. Adding anything here requires deleting something shipped.</p>
+      <ul>
+        <li><b>Streaks and gamification.</b> Seductive, and it makes a missed day a reason to quit rather than a data point.</li>
+        <li><b>A chat assistant.</b> Costs more, decides worse, and turns a 90-second screen into an open-ended conversation.</li>
+        <li><b>Nutrition, caffeine, alcohol, steps, strength-versus-cardio.</b> None of it changes a planning recommendation. Principle 5.</li>
+        <li><b>Self-rated skill percentages.</b> Users cannot rate themselves and the number would drive real decisions.</li>
+        <li><b>A social feed, sharing, accountability partners.</b> A different product.</li>
+        <li><b>Infinite news scroll.</b> Directly self-defeating for an execution system.</li>
+        <li><b>Full OKR modelling, key results, confidence scoring.</b> A team methodology imported into a single-player tool.</li>
+        <li><b>Dopamine scores, productivity scores, any invented metric.</b> Every displayed number must be traceable to user input.</li>
+        <li><b>Native mobile apps.</b> Responsive web, installable, until phase 4 at the earliest.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 10 ============ -->
+  <section id="s10">
+    <h2><span class="num">10</span><span>Open questions</span></h2>
+    <div class="prose">
+      <ol>
+        <li><b>Calendar integration timing.</b> Capacity is only as honest as its fixed-block input, and self-reported commitments are unreliable. Read-only Google Calendar in phase 2 would replace estimates with observation — at the cost of an OAuth flow before the loop is proven. Leaning: phase 3.</li>
+        <li><b>Is the binding constraint hours or attention?</b> The capacity model assumes hours. For most knowledge work the real ceiling is two to three deep-work blocks regardless of hours available. A second ceiling on deep-work count may be needed alongside the minutes ceiling.</li>
+        <li><b>Should calibration segment by task type?</b> Coding and admin almost certainly have different multipliers, but segmenting triples the data needed to leave the prior. Leaning: global in v1, segment once <code>n &gt; 100</code>.</li>
+        <li><b>Auto-close at 04:00 — right boundary?</b> It works for a normal schedule and mis-attributes for night shifts. Possibly derived per user from observed clock-in times after two weeks.</li>
+        <li><b>Notification channel.</b> Web push has poor iOS reliability; the evening nudge is load-bearing for the loop. Email fallback is unglamorous but works.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>Rushour build specification &middot; v1.0 &middot; supersedes the feature outline &middot; next: phase 0</footer>
+</main>
+</div>
