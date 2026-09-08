@@ -19,6 +19,8 @@ export interface DayRecord {
   completedTasks: number;
   readinessScore: number | null;
   reasons: string[];
+  /** Tasks by the tier they actually reached. Drives progression (progress.ts). */
+  tiers?: { minimum: number; target: number; stretch: number };
 }
 
 export interface SuccessMetrics {

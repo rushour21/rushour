@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 const NAV = [
+  { href: "/home", label: "Home" },
   { href: "/today", label: "Today" },
   { href: "/goals", label: "Goals" },
   { href: "/review", label: "Review" },
@@ -14,14 +15,14 @@ export function AppShell({
 }: {
   children: ReactNode;
   name: string;
-  active: "today" | "goals" | "review";
+  active: "home" | "today" | "goals" | "review";
 }) {
   return (
     <div className="min-h-dvh">
       <header className="border-b border-rule bg-surface">
         <div className="max-w-[46rem] mx-auto px-5 h-14 flex items-center justify-between">
           <Link
-            href="/today"
+            href="/home"
             className="font-display font-700 text-[15px] tracking-[-0.01em]"
           >
             Rushour

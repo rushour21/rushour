@@ -106,5 +106,5 @@ export async function saveConstraints(
   );
 
   revalidatePath("/today");
-  redirect("/today");
+  redirect("/home");
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { hm } from "@/lib/engine";
+import { FAILURE_REASONS, hm } from "@/lib/engine";
 
 /**
  * Charts for the dashboard.
@@ -212,13 +212,12 @@ export function ReadinessTrend({ days }: { days: DayPoint[] }) {
  * Why work did not finish. Nominal categories, so one hue for every bar -
  * darkening by size would burn the colour channel on the length already shown.
  */
-export function ReasonBars({
-  histogram,
-  labelFor,
-}: {
-  histogram: Record<string, number>;
-  labelFor: (key: string) => string;
-}) {
+export function ReasonBars({ histogram }: { histogram: Record<string, number> }) {
+  // Resolved here rather than passed in: a function cannot cross the
+  // server/client boundary, and the reason list is a plain constant.
+  const labelFor = (key: string) =>
+    FAILURE_REASONS.find((r) => r.value === key)?.label ?? key;
+
   const rows = Object.entries(histogram).sort((a, b) => b[1] - a[1]);
   if (rows.length === 0) {
     return (

@@ -1,7 +1,14 @@
 import { connectDb } from "@/lib/db/client";
 import { NodeModel, SessionModel } from "@/lib/db/models";
 import { calibrate } from "@/lib/engine/calibration";
-import { successMetrics, type DayRecord } from "@/lib/engine";
+import {
+  achievements,
+  levelFor,
+  streak,
+  successMetrics,
+  totalXp,
+  type DayRecord,
+} from "@/lib/engine";
 import { addDays, sessionDate } from "@/lib/time";
 import type { Ctx } from "./context";
 
@@ -11,6 +18,9 @@ export interface DashboardData {
   days: DayRecord[];
   metrics: ReturnType<typeof successMetrics>;
   calibration: ReturnType<typeof calibrate>;
+  streak: ReturnType<typeof streak>;
+  level: ReturnType<typeof levelFor>;
+  achievements: ReturnType<typeof achievements>;
   activeGoals: { id: string; title: string; category: string }[];
   laterCount: number;
   today: {
@@ -71,6 +81,11 @@ export async function dashboardData(ctx: Ctx): Promise<DashboardData> {
       completedTasks: actuals.filter((a) => a.tierReached !== "none").length,
       readinessScore: s.readiness?.score ?? null,
       reasons: actuals.map((a) => a.reason).filter((r): r is string => Boolean(r)),
+      tiers: {
+        minimum: actuals.filter((a) => a.tierReached === "minimum").length,
+        target: actuals.filter((a) => a.tierReached === "target").length,
+        stretch: actuals.filter((a) => a.tierReached === "stretch").length,
+      },
     };
   });
 
@@ -101,14 +116,28 @@ export async function dashboardData(ctx: Ctx): Promise<DashboardData> {
 
   const current = byDate.get(today);
 
+  const calibration = calibrate(observations);
+  const activeGoals = goalDocs.filter((g) => g.status === "active");
+  const laterCount = goalDocs.filter(
+    (g) => g.status === "later" || g.status === "parked",
+  ).length;
+
   return {
     days,
     metrics: successMetrics(days),
-    calibration: calibrate(observations),
+    calibration,
+    streak: streak(days),
+    level: levelFor(totalXp(days)),
+    achievements: achievements({
+      days,
+      calibrationN: calibration.n,
+      activeGoals: activeGoals.length,
+      laterGoals: laterCount,
+    }),
     activeGoals: goalDocs
       .filter((g) => g.status === "active")
       .map((g) => ({ id: String(g._id), title: g.title, category: g.category })),
-    laterCount: goalDocs.filter((g) => g.status === "later" || g.status === "parked").length,
+    laterCount,
     today: {
       localDate: today,
       state: !current

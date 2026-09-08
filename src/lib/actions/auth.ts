@@ -55,5 +55,5 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
     return { error: "That email and password do not match an account." };
   }
 
-  redirect("/today");
+  redirect("/home");
 }
