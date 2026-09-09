@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+// A side-effect import, required before PDFParse is used at all: it registers
+// pdf-parse's own worker rather than leaving pdfjs-dist to resolve one
+// through the bundler, which is what breaks under Turbopack. Paired with
+// serverExternalPackages: ["pdf-parse"] in next.config.ts - both are needed.
+import "pdf-parse/worker";
 
 /**
  * POST /api/resume/extract
@@ -50,7 +55,8 @@ export async function POST(request: Request) {
       { error: "Upload a PDF or a plain text file." },
       { status: 415 },
     );
-  } catch {
+  } catch (err) {
+    console.error("[resume/extract]", err);
     return NextResponse.json(
       { error: "Couldn't read that file. Try pasting the text instead." },
       { status: 422 },
