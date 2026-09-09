@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { profileStore } from "@/lib/store/profile";
 import { quizStore, newQuizId, type QuizRecord } from "@/lib/store/quiz";
+import { quizSessionStore } from "@/lib/store/quiz-session";
 import { requestQuizQuestions } from "@/lib/actions/quiz";
 import {
   currentDifficulty,
@@ -15,19 +16,22 @@ import { Button } from "@/components/app/bits";
 import { ResumeUpload } from "@/components/resume/resume-upload";
 import { IconArrow, IconBook } from "@/components/app/icons";
 
-type Session = { queue: QuizRecord[]; index: number; started: boolean };
-
 /**
  * The daily quiz: up to 10 questions, wrong-answered ones from previous
  * days retried first, new ones generated at the current difficulty and
  * grounded in the resume, correct answers retired permanently, difficulty
  * only ever moving one step per answer.
+ *
+ * The generated batch and the user's place in it are both persisted
+ * (quizStore for the questions, quizSessionStore for the order/index) so
+ * leaving mid-quiz and coming back resumes at the same question instead of
+ * generating a new batch from the AI.
  */
 export function QuizView() {
   const profile = profileStore.useProfile();
   const history = quizStore.useItems();
+  const activeSession = quizSessionStore.useSession();
 
-  const [session, setSession] = useState<Session>({ queue: [], index: 0, started: false });
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [loading, start] = useTransition();
@@ -39,6 +43,17 @@ export function QuizView() {
 
   const todayAnswered = history.filter((q) => q.correct !== null && localDateKey(new Date(q.askedAt)) === today);
   const alreadyDoneToday = todayAnswered.length >= MAX_QUESTIONS_PER_DAY;
+
+  const started = activeSession !== null && activeSession.date === today;
+  const byId = useMemo(() => new Map(history.map((q) => [q.id, q])), [history]);
+  const queue = useMemo(
+    () =>
+      started
+        ? activeSession!.order.map((id) => byId.get(id)).filter((q): q is QuizRecord => q !== undefined)
+        : [],
+    [started, activeSession, byId],
+  );
+  const index = activeSession?.index ?? 0;
 
   async function startQuiz() {
     setError(null);
@@ -72,49 +87,42 @@ export function QuizView() {
             answeredIndex: null,
             correct: null,
           }));
+          // Persist the freshly generated questions immediately, so the
+          // batch survives a reload instead of being regenerated.
+          generated.forEach((q) => quizStore.add(q));
         }
       }
 
-      const queue = [...retrySlice, ...generated].slice(0, MAX_QUESTIONS_PER_DAY);
-      if (queue.length === 0) {
+      const order = [...retrySlice, ...generated].slice(0, MAX_QUESTIONS_PER_DAY).map((q) => q.id);
+      if (order.length === 0) {
         setError("Nothing to ask right now.");
         return;
       }
 
-      setSession({ queue, index: 0, started: true });
+      quizSessionStore.save({ date: today, order, index: 0 });
       setSelected(null);
       setRevealed(false);
     });
   }
 
-  function submit() {
+  function handleSubmit() {
     if (selected === null) return;
-    const current = session.queue[session.index];
+    const current = queue[index];
     const correct = selected === current.correctIndex;
+    const askedAt = Date.now();
 
-    const answered: QuizRecord = {
-      ...current,
-      answeredIndex: selected,
-      correct,
-      askedAt: Date.now(),
-    };
-
-    // A retried question already exists in the store; a freshly generated
-    // one doesn't yet - add vs update accordingly.
-    if (history.some((h) => h.id === answered.id)) {
-      quizStore.update(answered.id, answered);
-    } else {
-      quizStore.add(answered);
-    }
-
-    setSession((s) => ({ ...s, queue: s.queue.map((q, i) => (i === s.index ? answered : q)) }));
+    quizStore.update(current.id, { answeredIndex: selected, correct, askedAt });
     setRevealed(true);
   }
 
-  function next() {
+  function handleNext() {
     setSelected(null);
     setRevealed(false);
-    setSession((s) => ({ ...s, index: s.index + 1 }));
+    quizSessionStore.setIndex(index + 1);
+  }
+
+  function handleFinishQuiz() {
+    quizSessionStore.clear();
   }
 
   if (!profile.resumeText) {
@@ -132,7 +140,7 @@ export function QuizView() {
     );
   }
 
-  if (!session.started) {
+  if (!started) {
     const doneToday = todayAnswered.filter((q) => q.correct).length;
     return (
       <div className="max-w-[560px] mx-auto pt-1">
@@ -167,12 +175,12 @@ export function QuizView() {
     );
   }
 
-  const current = session.queue[session.index];
-  const isLast = session.index === session.queue.length - 1;
-  const finished = session.index >= session.queue.length;
+  const current = queue[index];
+  const isLast = index === queue.length - 1;
+  const finished = index >= queue.length;
 
   if (finished) {
-    const correctCount = session.queue.filter((q) => q.correct).length;
+    const correctCount = queue.filter((q) => q.correct).length;
     return (
       <div className="max-w-[560px] mx-auto pt-1">
         <Header />
@@ -181,16 +189,14 @@ export function QuizView() {
             Quiz complete
           </p>
           <p className="text-[32px] font-extrabold tnum tracking-[-0.02em] mb-1">
-            {correctCount} / {session.queue.length}
+            {correctCount} / {queue.length}
           </p>
           <p className="text-[14px] text-ink-soft mb-5">
-            {correctCount === session.queue.length
+            {correctCount === queue.length
               ? "Every one right - all retired."
               : "Wrong ones will come back on another day."}
           </p>
-          <Button onClick={() => setSession({ queue: [], index: 0, started: false })}>
-            Done
-          </Button>
+          <Button onClick={handleFinishQuiz}>Done</Button>
         </div>
       </div>
     );
@@ -201,7 +207,7 @@ export function QuizView() {
       <Header />
       <div className="mt-6 flex items-center justify-between gap-3 mb-3">
         <span className="text-[12.5px] font-semibold text-ink-soft tnum">
-          Question {session.index + 1} of {session.queue.length}
+          Question {index + 1} of {queue.length}
         </span>
         <span className="text-[11px] font-bold px-2 py-1 rounded-md bg-brand-soft text-brand">
           Level {current.difficulty}
@@ -247,11 +253,11 @@ export function QuizView() {
 
         <div className="mt-5 flex justify-end">
           {!revealed ? (
-            <Button onClick={submit} disabled={selected === null}>
+            <Button onClick={handleSubmit} disabled={selected === null}>
               Submit
             </Button>
           ) : (
-            <Button onClick={next}>
+            <Button onClick={handleNext}>
               {isLast ? "Finish" : "Next question"}
               <IconArrow className="w-4 h-4" />
             </Button>
