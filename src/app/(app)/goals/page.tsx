@@ -1,58 +1,21 @@
 import { QuoteCard } from "@/components/app/rail";
-import { Button, Donut, Legend, PageHead, TabPills } from "@/components/app/bits";
-import { GoalCard } from "@/components/goals/goal-card";
+import { Button, Donut, Legend } from "@/components/app/bits";
+import { GoalsView } from "@/components/goals/goals-view";
 import {
   IconArrow,
   IconBook,
   IconHeart,
   IconLaptop,
-  IconPlus,
   IconSpark,
-  IconSuitcase,
   IconTarget,
 } from "@/components/app/icons";
-import { MONTH_FOCUS, YEAR_GOALS } from "@/lib/sample/goals";
-
-const GOAL_ICON: Record<string, React.ReactNode> = {
-  y1: <IconLaptop />,
-  y2: <IconHeart />,
-  y3: <IconBook />,
-  y4: <IconSuitcase />,
-};
+import { MONTH_FOCUS } from "@/lib/sample/goals";
 
 export default function GoalsPage() {
   return (
     <div className="max-w-[1500px] mx-auto grid xl:grid-cols-[minmax(0,1fr)_340px] gap-5 pt-1">
       <div className="min-w-0">
-        <PageHead
-          eyebrow="Goals"
-          title="Turn your ambitions into a clear path."
-          subtitle="Set meaningful goals, break them down, and make consistent progress."
-          action={
-            <Button>
-              <IconPlus className="w-[18px] h-[18px]" />
-              Create Goal
-            </Button>
-          }
-        />
-
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-          <TabPills
-            tabs={["All Goals", "Active", "Completed", "Personal", "Career", "Health", "Learning"]}
-          />
-          <blockquote className="hidden lg:block text-right text-[13px] italic text-ink-soft leading-relaxed max-w-[200px]">
-            &ldquo;A goal without a plan is just a wish.&rdquo;
-            <cite className="block not-italic text-[12px] text-ink-faint mt-1">
-              — Antoine de Saint-Exupéry
-            </cite>
-          </blockquote>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          {YEAR_GOALS.map((g) => (
-            <GoalCard key={g.id} goal={g} icon={GOAL_ICON[g.id]} />
-          ))}
-        </div>
+        <GoalsView />
 
         <section className="mt-7">
           <div className="flex items-end justify-between gap-3 mb-4">

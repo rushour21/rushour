@@ -34,8 +34,19 @@ const TONE = {
  * chip once logged, a button before that - so the row reads as complete or not
  * without needing the checkbox to be parsed.
  */
-export function HabitRow({ habit }: { habit: Habit }) {
-  const [done, setDone] = useState(habit.done);
+export function HabitRow({
+  habit,
+  onToggle,
+  onEdit,
+  onDelete,
+}: {
+  habit: Habit;
+  onToggle?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
+  const done = habit.done;
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <li className="flex items-center gap-3 py-3 border-b border-line last:border-b-0">
@@ -44,7 +55,7 @@ export function HabitRow({ habit }: { habit: Habit }) {
         role="checkbox"
         aria-checked={done}
         aria-label={done ? `Mark ${habit.name} not done` : `Mark ${habit.name} done`}
-        onClick={() => setDone((d) => !d)}
+        onClick={() => onToggle?.()}
         className={`w-[22px] h-[22px] rounded-full grid place-items-center shrink-0 border-2 transition-colors ${
           done ? "bg-mint border-mint" : "border-line-strong hover:border-brand"
         }`}
@@ -77,16 +88,55 @@ export function HabitRow({ habit }: { habit: Habit }) {
       ) : (
         <button
           type="button"
-          onClick={() => setDone(true)}
+          onClick={() => onToggle?.()}
           className="shrink-0 h-9 px-3.5 rounded-lg border border-line text-[12.5px] font-semibold text-ink-soft hover:border-brand hover:text-brand transition-colors"
         >
           Mark Done
         </button>
       )}
 
-      <button aria-label={`Actions for ${habit.name}`} className="text-ink-faint hover:text-ink shrink-0">
-        <IconDots className="w-4 h-4" />
-      </button>
+      <div className="relative shrink-0">
+        <button
+          type="button"
+          aria-label={`Actions for ${habit.name}`}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
+          className="text-ink-faint hover:text-ink"
+        >
+          <IconDots className="w-4 h-4" />
+        </button>
+        {menuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setMenuOpen(false)}
+              aria-hidden="true"
+            />
+            <div className="absolute z-50 right-0 top-full mt-1 w-36 bg-surface border border-line rounded-xl shadow-[var(--shadow-lift)] p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onEdit?.();
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg text-[13.5px] font-medium hover:bg-surface-2 transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDelete?.();
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg text-[13.5px] font-medium text-rose hover:bg-rose-soft transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </li>
   );
 }

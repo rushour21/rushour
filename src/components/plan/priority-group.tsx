@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { IconDots, IconPlus } from "@/components/app/icons";
-import { CATEGORY_CHIP, hmLong, PRIORITY_META, type Priority, type Task } from "@/lib/sample/data";
+import { CATEGORY_CHIP, hmLong, PRIORITY_META, type Priority } from "@/lib/sample/data";
+import type { TaskRecord } from "@/lib/store/entities";
 
 /**
  * One priority bucket. The ring on the heading is the only place the bucket's
@@ -13,16 +14,24 @@ export function PriorityGroup({
   priority,
   tasks,
   showBlurb = false,
+  onAdd,
+  onToggle,
+  onEdit,
+  onDelete,
 }: {
   priority: Priority;
-  tasks: Task[];
+  tasks: TaskRecord[];
   showBlurb?: boolean;
+  onAdd?: () => void;
+  onToggle?: (id: string) => void;
+  onEdit?: (task: TaskRecord) => void;
+  onDelete?: (task: TaskRecord) => void;
 }) {
   const meta = PRIORITY_META[priority];
-  const [rows, setRows] = useState(tasks);
   const [open, setOpen] = useState(true);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
 
-  const total = rows.filter((t) => !t.done).reduce((n, t) => n + t.minutes, 0);
+  const total = tasks.filter((t) => !t.done).reduce((n, t) => n + t.minutes, 0);
 
   return (
     <section className="rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)] overflow-hidden">
@@ -32,7 +41,7 @@ export function PriorityGroup({
           <p className="flex items-center gap-2 text-[15.5px] font-bold">
             {meta.group}
             <span className="text-[12px] font-bold text-ink-soft bg-surface-2 rounded-md px-2 py-0.5 tnum">
-              {rows.length}
+              {tasks.length}
             </span>
           </p>
           {showBlurb && <p className="text-[12.5px] text-ink-soft mt-0.5">{meta.blurb}</p>}
@@ -40,11 +49,14 @@ export function PriorityGroup({
 
         <div className="flex-1" />
 
-        {showBlurb ? (
+        {showBlurb && (
           <span className="text-[14px] font-bold tnum text-ink-soft">{hmLong(total)}</span>
-        ) : (
+        )}
+
+        {onAdd && (
           <button
             type="button"
+            onClick={onAdd}
             className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand hover:opacity-80"
           >
             <IconPlus className="w-4 h-4" />
@@ -75,7 +87,12 @@ export function PriorityGroup({
 
       {open && (
         <ul className="border-t border-line">
-          {rows.map((t) => (
+          {tasks.length === 0 && (
+            <li className="px-5 py-6 text-center text-[13.5px] text-ink-soft">
+              Nothing here yet.
+            </li>
+          )}
+          {tasks.map((t) => (
             <li
               key={t.id}
               className="flex items-center gap-3 px-5 py-3 border-b border-line last:border-b-0"
@@ -85,9 +102,7 @@ export function PriorityGroup({
                 role="checkbox"
                 aria-checked={t.done}
                 aria-label={t.done ? `Mark ${t.title} not done` : `Mark ${t.title} done`}
-                onClick={() =>
-                  setRows((p) => p.map((r) => (r.id === t.id ? { ...r, done: !r.done } : r)))
-                }
+                onClick={() => onToggle?.(t.id)}
                 className={`w-[22px] h-[22px] rounded-lg grid place-items-center shrink-0 border-2 transition-colors ${
                   t.done ? "bg-mint border-mint" : "border-line-strong hover:border-brand"
                 }`}
@@ -116,13 +131,49 @@ export function PriorityGroup({
                 {t.category}
               </span>
 
-              <button
-                type="button"
-                aria-label={`More actions for ${t.title}`}
-                className="text-ink-faint hover:text-ink shrink-0"
-              >
-                <IconDots className="w-4 h-4" />
-              </button>
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  aria-label={`More actions for ${t.title}`}
+                  aria-expanded={menuFor === t.id}
+                  onClick={() => setMenuFor((m) => (m === t.id ? null : t.id))}
+                  className="text-ink-faint hover:text-ink"
+                >
+                  <IconDots className="w-4 h-4" />
+                </button>
+
+                {menuFor === t.id && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setMenuFor(null)}
+                      aria-hidden="true"
+                    />
+                    <div className="absolute z-50 right-0 top-full mt-1 w-36 bg-surface border border-line rounded-xl shadow-[var(--shadow-lift)] p-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuFor(null);
+                          onEdit?.(t);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-[13.5px] font-medium hover:bg-surface-2 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuFor(null);
+                          onDelete?.(t);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-[13.5px] font-medium text-rose hover:bg-rose-soft transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </li>
           ))}
         </ul>

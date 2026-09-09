@@ -1,4 +1,7 @@
-import { IconArrow, IconBookmark, IconCheck, IconNote } from "@/components/app/icons";
+"use client";
+
+import { useState } from "react";
+import { IconArrow, IconBookmark, IconCheck, IconDots, IconNote } from "@/components/app/icons";
 import type { Goal } from "@/lib/sample/goals";
 
 const TONE = {
@@ -20,8 +23,19 @@ const TAG_CHIP: Record<string, string> = {
  * panel beside it. Splitting them keeps the counts legible - milestones, tasks
  * and projects are navigation, not part of the goal's own statement.
  */
-export function GoalCard({ goal, icon }: { goal: Goal; icon: React.ReactNode }) {
+export function GoalCard({
+  goal,
+  icon,
+  onEdit,
+  onDelete,
+}: {
+  goal: Goal;
+  icon: React.ReactNode;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
   const t = TONE[goal.tone];
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <article className="rounded-2xl border border-line bg-surface overflow-hidden shadow-[var(--shadow-card)] grid md:grid-cols-[minmax(0,1fr)_220px]">
@@ -37,6 +51,51 @@ export function GoalCard({ goal, icon }: { goal: Goal; icon: React.ReactNode }) 
               <span className="text-[11px] font-semibold px-2 py-1 rounded-md bg-surface text-ink-soft shrink-0">
                 Year Goal
               </span>
+
+              {(onEdit || onDelete) && (
+                <div className="relative ml-auto shrink-0">
+                  <button
+                    type="button"
+                    aria-label={`More actions for ${goal.title}`}
+                    aria-expanded={menuOpen}
+                    onClick={() => setMenuOpen((o) => !o)}
+                    className="text-ink-faint hover:text-ink"
+                  >
+                    <IconDots className="w-4 h-4" />
+                  </button>
+                  {menuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setMenuOpen(false)}
+                        aria-hidden="true"
+                      />
+                      <div className="absolute z-50 right-0 top-full mt-1 w-36 bg-surface border border-line rounded-xl shadow-[var(--shadow-lift)] p-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onEdit?.();
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-lg text-[13.5px] font-medium hover:bg-surface-2 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onDelete?.();
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-lg text-[13.5px] font-medium text-rose hover:bg-rose-soft transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             <p className="mt-1.5 text-[13.5px] text-ink-soft leading-relaxed">{goal.detail}</p>
 

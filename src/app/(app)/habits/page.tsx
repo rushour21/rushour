@@ -1,79 +1,26 @@
 import { QuoteCard } from "@/components/app/rail";
-import { Button, PageHead, Select, TabPills } from "@/components/app/bits";
-import { HabitRow } from "@/components/habits/habit-row";
+import { Select } from "@/components/app/bits";
+import { HabitsView } from "@/components/habits/habits-view";
 import { WeekGrid } from "@/components/habits/week-grid";
 import { BarSeries } from "@/components/charts/bar-series";
 import {
   IconArrow,
   IconBulb,
-  IconChevronLeft,
-  IconChevronRight,
-  IconDots,
   IconFlame,
   IconLeaf,
   IconMoon,
   IconPlus,
-  IconSearch,
   IconTrendDown,
 } from "@/components/app/icons";
-import { COMPLETION_BARS, HABIT_INSIGHTS, HABITS, WEEK_GRID } from "@/lib/sample/habits";
-
-const GOAL_CHIP = {
-  mint: "bg-mint-soft text-mint",
-  sky: "bg-sky-soft text-sky",
-  amber: "bg-amber-soft text-amber",
-  violet: "bg-violet-soft text-violet",
-};
+import { COMPLETION_BARS, HABIT_INSIGHTS, WEEK_GRID } from "@/lib/sample/habits";
 
 export default function HabitsPage() {
   return (
     <div className="max-w-[1500px] mx-auto grid xl:grid-cols-[minmax(0,1fr)_320px] gap-5 pt-1">
       <div className="min-w-0">
-        <PageHead
-          eyebrow="Habits"
-          title="Build a better you, one habit at a time."
-          subtitle="Consistency today creates the life you want tomorrow."
-          action={
-            <Button>
-              <IconPlus className="w-[18px] h-[18px]" />
-              Add Habit
-            </Button>
-          }
-        />
-
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-          <TabPills tabs={["Today", "This Week", "This Month", "All Habits"]} />
-          <Select label="Habit View" />
-        </div>
+        <HabitsView />
 
         <div className="grid lg:grid-cols-2 gap-4 items-start">
-          <section className="rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)]">
-            <div className="flex items-center justify-between gap-3 px-5 pt-4.5 pb-2">
-              <h2 className="text-[16px] font-bold">Today&rsquo;s Habits</h2>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-ink-soft" suppressHydrationWarning>
-                  {new Date().toLocaleDateString(undefined, {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </span>
-                <button aria-label="Previous day" className="w-8 h-8 grid place-items-center rounded-lg border border-line text-ink-soft hover:bg-surface-2">
-                  <IconChevronLeft className="w-4 h-4" />
-                </button>
-                <button aria-label="Next day" className="w-8 h-8 grid place-items-center rounded-lg border border-line text-ink-soft hover:bg-surface-2">
-                  <IconChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            <ul className="px-5 pb-4">
-              {HABITS.map((h) => (
-                <HabitRow key={h.id} habit={h} />
-              ))}
-            </ul>
-          </section>
-
           <div className="flex flex-col gap-4 min-w-0">
             <section className="rounded-2xl border border-line bg-surface p-5 shadow-[var(--shadow-card)]">
               <div className="flex items-center justify-between gap-3 mb-4">
@@ -100,62 +47,6 @@ export default function HabitsPage() {
           </div>
         </div>
 
-        <section className="mt-4 rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)]">
-          <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-4.5 pb-3">
-            <h2 className="text-[16px] font-bold">All Habits</h2>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <label className="relative">
-                <span className="sr-only">Search habits</span>
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none">
-                  <IconSearch className="w-4 h-4" />
-                </span>
-                <input
-                  type="search"
-                  placeholder="Search habits..."
-                  className="h-10 w-[190px] pl-9 pr-3 rounded-xl bg-surface border border-line text-[13.5px] placeholder:text-ink-faint outline-none focus:border-brand"
-                />
-              </label>
-              <TabPills tabs={["All", "Health", "Productivity", "Personal"]} />
-            </div>
-          </div>
-
-          <div className="overflow-x-auto scroll-slim">
-            <table className="w-full min-w-[680px] text-[14px]">
-              <thead>
-                <tr className="text-left text-[12px] font-semibold text-ink-soft border-y border-line bg-surface-2/50">
-                  <th className="px-5 py-2.5 font-semibold">Habit</th>
-                  <th className="px-3 py-2.5 font-semibold">Frequency</th>
-                  <th className="px-3 py-2.5 font-semibold">Current Streak</th>
-                  <th className="px-3 py-2.5 font-semibold">Avg. Completion</th>
-                  <th className="px-3 py-2.5 font-semibold">Goal Link</th>
-                  <th className="px-5 py-2.5 font-semibold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {HABITS.slice(0, 4).map((h) => (
-                  <tr key={h.id} className="border-b border-line last:border-b-0">
-                    <td className="px-5 py-3 font-semibold">{h.name}</td>
-                    <td className="px-3 py-3 text-ink-soft">{h.frequency}</td>
-                    <td className="px-3 py-3 tnum text-ink-soft">
-                      {h.streak} {h.streak === 1 ? "day" : "days"}
-                    </td>
-                    <td className="px-3 py-3 tnum text-ink-soft">{h.completion}%</td>
-                    <td className="px-3 py-3">
-                      <span className={`text-[11px] font-semibold px-2 py-1 rounded-md ${GOAL_CHIP[h.goal.tone]}`}>
-                        {h.goal.label}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <button aria-label={`Actions for ${h.name}`} className="text-ink-faint hover:text-ink">
-                        <IconDots className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
       </div>
 
       <aside className="flex flex-col gap-4 min-w-0">

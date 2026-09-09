@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Hero } from "@/components/dash/hero";
 import { StatCard } from "@/components/dash/stat-cards";
 import { Panel } from "@/components/dash/panel";
-import { TaskList } from "@/components/dash/task-list";
+import { TodayTasks } from "@/components/dash/today-tasks";
+import { TaskStat } from "@/components/dash/task-stat";
 import { GoalList } from "@/components/dash/goal-list";
 import { DateNav } from "@/components/app/rail";
 import { WeekBars } from "@/components/dash/week-bars";
@@ -23,12 +24,10 @@ import {
   GOALS,
   hm,
   PLAN_BLOCKS,
-  TASKS,
   WEEK_BARS,
 } from "@/lib/sample/data";
 
 export default function DashboardPage() {
-  const done = TASKS.filter((t) => t.done).length;
   const focusMin = FOCUS_SPLIT.reduce((n, f) => n + f.value, 0);
 
   const goalIcons = {
@@ -42,13 +41,7 @@ export default function DashboardPage() {
       <Hero firstName="Rushabh" cta={{ label: "Plan my day", href: "/plan" }} />
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
-          icon={<IconCheck />}
-          value={`${done} / ${TASKS.length}`}
-          label="Tasks completed"
-          pct={Math.round((done / TASKS.length) * 100)}
-          tone="mint"
-        />
+        <TaskStat />
         <StatCard
           icon={<IconTarget />}
           value="2 / 4"
@@ -74,15 +67,7 @@ export default function DashboardPage() {
 
       <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-4 items-start">
         <Panel title="Today's Tasks" action={{ label: "View all", href: "/tasks" }}>
-          <TaskList
-            tasks={TASKS.slice(0, 5).map((t) => ({
-              id: t.id,
-              title: t.title,
-              time: t.due,
-              category: t.category,
-              done: t.done,
-            }))}
-          />
+          <TodayTasks />
         </Panel>
 
         <Panel title="Your Goals" action={{ label: "View all", href: "/goals" }}>

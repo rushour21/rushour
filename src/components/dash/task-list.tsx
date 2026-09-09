@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { CategoryChip } from "./panel";
 import { IconDots } from "@/components/app/icons";
 
@@ -17,8 +16,14 @@ export interface TaskRow {
  * being designed here, and a checkbox that waits on a round trip reads as
  * broken even when it is working.
  */
-export function TaskList({ tasks }: { tasks: TaskRow[] }) {
-  const [rows, setRows] = useState(tasks);
+export function TaskList({
+  tasks,
+  onToggle,
+}: {
+  tasks: TaskRow[];
+  onToggle?: (id: string) => void;
+}) {
+  const rows = tasks;
 
   if (rows.length === 0) {
     return (
@@ -40,9 +45,7 @@ export function TaskList({ tasks }: { tasks: TaskRow[] }) {
             role="checkbox"
             aria-checked={t.done}
             aria-label={t.done ? `Mark ${t.title} not done` : `Mark ${t.title} done`}
-            onClick={() =>
-              setRows((p) => p.map((r) => (r.id === t.id ? { ...r, done: !r.done } : r)))
-            }
+            onClick={() => onToggle?.(t.id)}
             className={`w-5 h-5 rounded-full grid place-items-center shrink-0 border-2 transition-colors ${
               t.done ? "bg-mint border-mint" : "border-line-strong hover:border-brand"
             }`}

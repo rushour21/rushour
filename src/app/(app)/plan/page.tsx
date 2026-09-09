@@ -1,6 +1,6 @@
 import { DateNav, QuoteCard } from "@/components/app/rail";
 import { Button } from "@/components/app/bits";
-import { PriorityGroup } from "@/components/plan/priority-group";
+import { PlanTasks } from "@/components/plan/plan-tasks";
 import { Timeline } from "@/components/plan/timeline";
 import {
   IconBolt,
@@ -16,7 +16,7 @@ import {
   IconTarget,
   IconArrow,
 } from "@/components/app/icons";
-import { CAPACITY, DAY_INSIGHTS, hm, OUTCOME, PLAN_BLOCKS, TASKS } from "@/lib/sample/data";
+import { CAPACITY, DAY_INSIGHTS, hm, OUTCOME, PLAN_BLOCKS } from "@/lib/sample/data";
 
 export default function PlanPage() {
   const pct = Math.round((CAPACITY.plannedMin / CAPACITY.availableMin) * 100);
@@ -109,9 +109,7 @@ export default function PlanPage() {
 
         <div className="grid lg:grid-cols-2 gap-4 items-start">
           <div className="flex flex-col gap-4 min-w-0">
-            <PriorityGroup priority="must" tasks={TASKS.filter((t) => t.priority === "must")} />
-            <PriorityGroup priority="should" tasks={TASKS.filter((t) => t.priority === "should")} />
-            <PriorityGroup priority="could" tasks={TASKS.filter((t) => t.priority === "could")} />
+            <PlanTasks />
           </div>
 
           <section className="rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)] min-w-0">
