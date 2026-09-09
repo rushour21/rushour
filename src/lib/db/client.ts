@@ -26,6 +26,16 @@ export async function connectDb(): Promise<typeof mongoose> {
     cached.promise = mongoose.connect(uri, { bufferCommands: false });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    // A failed attempt must not stick around as "the" cached promise - every
+    // call after a transient outage (Mongo not started yet, a restart) would
+    // otherwise keep re-awaiting the same already-rejected promise forever,
+    // even once the database is actually reachable again.
+    cached.promise = null;
+    throw err;
+  }
+
   return cached.conn;
 }
