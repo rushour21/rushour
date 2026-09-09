@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { signUpAction } from "@/lib/actions/auth";
 import { Button, ErrorNote, Field, Label } from "@/components/ui";
+import { ResumeUpload } from "@/components/resume/resume-upload";
 
 export function SignUpForm() {
   const [state, action, pending] = useActionState(signUpAction, undefined);
@@ -39,6 +40,14 @@ export function SignUpForm() {
           autoComplete="new-password"
         />
         <p className="mt-1.5 text-[13px] text-ink-faint">At least 8 characters.</p>
+      </div>
+      <div>
+        <Label>Resume (optional)</Label>
+        <p className="mb-2 text-[13px] text-ink-faint">
+          Grounds your daily interview quiz in what you actually know. You can add
+          or update this later in Settings.
+        </p>
+        <ResumeUpload compact />
       </div>
       <ErrorNote>{state?.error}</ErrorNote>
       <Button type="submit" disabled={pending}>

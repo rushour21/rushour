@@ -1,4 +1,5 @@
 import { PageHead } from "@/components/app/bits";
+import { ResumeUpload } from "@/components/resume/resume-upload";
 
 const NAV = ["Profile", "Preferences", "Notifications", "Integrations", "Appearance", "Data & Privacy", "Billing", "Help & Support"];
 
@@ -94,6 +95,10 @@ export default function SettingsPage() {
             </button>
           </div>
         </section>
+      </div>
+
+      <div className="mt-5">
+        <ResumeUpload />
       </div>
     </div>
   );

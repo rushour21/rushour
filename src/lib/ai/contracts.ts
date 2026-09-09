@@ -96,3 +96,48 @@ export const ifThenJsonSchema = {
     response: { type: "string" },
   },
 } as const;
+
+/** Call site 6: resume + difficulty -> a batch of MCQ interview questions. */
+export const quizBatchSchema = z.object({
+  questions: z
+    .array(
+      z.object({
+        question: z.string().min(10).max(300),
+        options: z.array(z.string().min(1).max(160)).length(4),
+        correctIndex: z.number().int().min(0).max(3),
+        explanation: z.string().min(10).max(300),
+        topic: z.string().min(2).max(40),
+      }),
+    )
+    .min(1)
+    .max(10),
+});
+export type QuizBatch = z.infer<typeof quizBatchSchema>;
+
+export const quizBatchJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["questions"],
+  properties: {
+    questions: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["question", "options", "correctIndex", "explanation", "topic"],
+        properties: {
+          question: { type: "string" },
+          options: {
+            type: "array",
+            items: { type: "string" },
+            minItems: 4,
+            maxItems: 4,
+          },
+          correctIndex: { type: "integer", minimum: 0, maximum: 3 },
+          explanation: { type: "string" },
+          topic: { type: "string" },
+        },
+      },
+    },
+  },
+} as const;

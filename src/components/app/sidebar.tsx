@@ -12,6 +12,7 @@ import {
   IconHeart,
   IconHome,
   IconPlan,
+  IconQuiz,
   IconRadar,
   IconSuitcase,
   IconTarget,
@@ -27,6 +28,7 @@ const PRIMARY = [
   { href: "/focus", label: "Focus", Icon: IconClock },
   { href: "/analytics", label: "Analytics", Icon: IconChart },
   { href: "/career", label: "Career", Icon: IconSuitcase },
+  { href: "/quiz", label: "Daily Quiz", Icon: IconQuiz },
   { href: "/radar", label: "Radar", Icon: IconRadar },
 ];
 

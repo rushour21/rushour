@@ -4,9 +4,12 @@ import {
   goalTreeSchema,
   ifThenJsonSchema,
   ifThenSchema,
+  quizBatchJsonSchema,
+  quizBatchSchema,
   taskBreakdownJsonSchema,
   taskBreakdownSchema,
   type GoalTreeDraft,
+  type QuizBatch,
   type TaskBreakdown,
 } from "./contracts";
 
@@ -137,6 +140,52 @@ function allowedNumbers(stats: WeeklyStats): Set<string> {
   add(Math.abs(stats.utilizationAfter - stats.utilizationBefore) * 100);
   add((1 - stats.completionRate) * 100);
   return out;
+}
+
+const DIFFICULTY_LABEL: Record<number, string> = {
+  1: "entry-level - fundamentals a junior candidate should know",
+  2: "junior - common patterns and basic gotchas",
+  3: "mid-level - trade-offs, real debugging scenarios",
+  4: "senior - system design and edge cases",
+  5: "staff-level - deep internals and architectural judgement",
+};
+
+/**
+ * Call site 6 (the daily quiz). Grounded in the user's own resume text so
+ * questions target what they actually claim to know, at the given difficulty,
+ * excluding anything already answered correctly. Falls back to null - the
+ * caller shows "add a resume" or "try again" rather than a fabricated
+ * generic question, since an ungrounded interview question is close to
+ * worthless.
+ */
+export async function generateQuizBatch(
+  resumeText: string,
+  difficulty: number,
+  count: number,
+  excludeQuestions: string[],
+): Promise<QuizBatch | null> {
+  const raw = await chat({
+    system:
+      "You write multiple-choice interview practice questions grounded ONLY in " +
+      "the candidate's resume below - their listed skills, tools and experience. " +
+      "Never ask about a technology, language or domain the resume does not " +
+      "mention. Each question has exactly 4 options, exactly one correct, and a " +
+      "one-sentence explanation of why the correct answer is right. Target " +
+      `difficulty: ${DIFFICULTY_LABEL[difficulty] ?? DIFFICULTY_LABEL[1]}. ` +
+      "Vary the topic across questions rather than repeating the same skill. " +
+      "Never repeat, or closely rephrase, any question in the excluded list.",
+    user: JSON.stringify({
+      resume: resumeText.slice(0, 6000),
+      count,
+      excludeQuestions: excludeQuestions.slice(0, 60),
+    }),
+    schema: { name: "quiz_batch", schema: quizBatchJsonSchema },
+    maxTokens: 1800,
+  });
+  if (!raw) return null;
+
+  const parsed = quizBatchSchema.safeParse(safeJson(raw));
+  return parsed.success ? parsed.data : null;
 }
 
 export function groundedInNumbers(text: string, allowed: Set<string>): boolean {
