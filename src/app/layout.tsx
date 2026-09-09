@@ -18,7 +18,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={jakarta.variable}>
-      <body>{children}</body>
+      {/* Browser extensions (Bitdefender's TrafficLight and similar) inject
+          attributes like bis_skin_checked into the DOM before React hydrates,
+          which trips a false-positive hydration mismatch warning that has
+          nothing to do with app code. Suppressed at the one place it appears. */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }
