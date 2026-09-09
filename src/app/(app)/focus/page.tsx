@@ -47,7 +47,7 @@ export default function FocusPage() {
       <TabPills tabs={["Today", "This Week", "This Month", "Focus Sessions"]} />
 
       <div className="mt-5 grid lg:grid-cols-2 gap-4 items-start">
-        <section className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-[#eaf1ff] to-[#f4ecff] dark:from-[#16203a] dark:to-[#221a3a] p-8 grid place-items-center min-h-[300px]">
+        <section className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-[#eaf1ff] to-[#f4ecff] p-8 grid place-items-center min-h-[300px]">
           <div className="relative z-10 text-center">
             <Ring />
             <button

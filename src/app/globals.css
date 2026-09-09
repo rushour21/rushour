@@ -53,53 +53,9 @@
   --color-hold-soft: #fef4e2;
 }
 
-/*
-  Dark values are overridden as plain custom properties, NOT with a nested
-  `@theme`. Tailwind v4 only reads `@theme` at the top level; nested inside a
-  media query its declarations are emitted unconditionally, which silently
-  applied the dark palette to every visitor regardless of their OS setting.
-*/
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-ground: #0b0f1a;
-    --color-surface: #131826;
-    --color-surface-2: #1a2032;
-    --color-surface-3: #232b40;
-    --color-ink: #eef1f8;
-    --color-ink-soft: #98a3ba;
-    --color-ink-faint: #6b7690;
-    --color-line: #232b3d;
-    --color-line-strong: #313b52;
-    --color-brand: #7d95ff;
-    --color-brand-soft: #1c2440;
-    --color-brand-deep: #eef1f8;
-    --color-mint: #4ade80;
-    --color-mint-soft: #12261a;
-    --color-violet: #a78bfa;
-    --color-violet-soft: #221a3a;
-    --color-amber: #fbbf24;
-    --color-amber-soft: #2a2011;
-    --color-sky: #60a5fa;
-    --color-sky-soft: #141f36;
-    --color-rose: #fb7185;
-    --color-rose-soft: #2b1520;
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-lift: 0 4px 14px rgba(0, 0, 0, 0.35);
-    --color-rule: #232b3d;
-    --color-rule-strong: #313b52;
-    --color-accent: #7d95ff;
-    --color-accent-soft: #1c2440;
-    --color-ok: #4ade80;
-    --color-ok-soft: #12261a;
-    --color-over: #fb7185;
-    --color-over-soft: #2b1520;
-    --color-hold: #fbbf24;
-    --color-hold-soft: #2a2011;
-  }
-}
-
+/* Light theme only, by design - no dark palette is shipped. */
 html {
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
 body {

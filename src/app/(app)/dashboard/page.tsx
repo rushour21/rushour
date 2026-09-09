@@ -137,9 +137,9 @@ export default function DashboardPage() {
           </div>
         </Panel>
 
-        <section className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-[#e6f7ee] to-[#d5f0e2] dark:from-[#12261a] dark:to-[#0f2016] p-6 min-h-[190px] grid place-items-center text-center">
+        <section className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-[#e6f7ee] to-[#d5f0e2] p-6 min-h-[190px] grid place-items-center text-center">
           <div className="relative z-10">
-            <span className="inline-grid place-items-center w-12 h-12 rounded-2xl bg-white/70 dark:bg-white/10 text-mint mb-3">
+            <span className="inline-grid place-items-center w-12 h-12 rounded-2xl bg-white/70 text-mint mb-3">
               <IconLeaf />
             </span>
             <p className="text-[18px] font-extrabold tracking-[-0.02em]">

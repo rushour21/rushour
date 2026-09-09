@@ -45,7 +45,7 @@ export default function PlanPage() {
 
         <div className="grid md:grid-cols-2 gap-4">
           {/* Outcome */}
-          <section className="rounded-2xl border border-line bg-gradient-to-br from-[#fff1f2] to-[#fff7ed] dark:from-[#2b1520] dark:to-[#2a2011] p-5">
+          <section className="rounded-2xl border border-line bg-gradient-to-br from-[#fff1f2] to-[#fff7ed] p-5">
             <div className="flex items-center justify-between gap-3 mb-3">
               <p className="flex items-center gap-2 text-[14px] font-bold">
                 <span className="text-rose">
@@ -164,7 +164,7 @@ export default function PlanPage() {
           </ul>
         </section>
 
-        <section className="rounded-2xl bg-gradient-to-br from-[#efeaff] to-[#e6ecff] dark:from-[#221a3a] dark:to-[#1c2440] border border-violet/20 p-5">
+        <section className="rounded-2xl bg-gradient-to-br from-[#efeaff] to-[#e6ecff] border border-violet/20 p-5">
           <p className="flex items-center gap-2 text-[14.5px] font-bold text-violet mb-2">
             <IconSpark className="w-[18px] h-[18px]" />
             Need help prioritizing?

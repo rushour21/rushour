@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -84,28 +85,24 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function Logo() {
+  // Sourced from /public/assets/logo.png.
   return (
-    <span className="w-9 h-9 rounded-xl grid place-items-center bg-gradient-to-br from-[#f9c96b] to-[#4f6ef7] shrink-0">
-      <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
-        <path
-          d="M8 19V6.5A1.5 1.5 0 0 1 9.5 5h3.8a3.75 3.75 0 0 1 0 7.5H9.5"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path d="M12.4 12.5 16.5 19" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
-      </svg>
-    </span>
+    <Image
+      src="/assets/logo.png"
+      alt="Rushour"
+      width={36}
+      height={36}
+      className="w-9 h-9 rounded-xl object-cover shrink-0"
+      priority
+    />
   );
 }
 
 /** The one piece of decoration in the shell, and it carries the product's line. */
 function PromoCard() {
   return (
-    <div className="mt-3 rounded-2xl overflow-hidden bg-gradient-to-b from-[#e9f0ff] to-[#dbeafe] dark:from-[#1a2542] dark:to-[#16203a] p-4 relative">
-      <p className="font-bold text-[15px] leading-snug text-[#1b2440] dark:text-ink relative z-10">
+    <div className="mt-3 rounded-2xl overflow-hidden bg-gradient-to-b from-[#e9f0ff] to-[#dbeafe] p-4 relative">
+      <p className="font-bold text-[15px] leading-snug text-[#1b2440] relative z-10">
         Small steps.
         <br />
         Bigger tomorrows.

@@ -117,7 +117,7 @@ function RailButton({
 /** The line at the foot of the rail. Decorative, and the one place copy is warm. */
 export function QuoteCard({ text }: { text: string }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#4f6ef7] to-[#6d8bff] dark:from-[#2a3a72] dark:to-[#38487f] p-5 min-h-[128px]">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#4f6ef7] to-[#6d8bff] p-5 min-h-[128px]">
       <p className="relative z-10 text-white font-bold text-[15px] leading-snug max-w-[80%]">
         {text}
       </p>

@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-line bg-gradient-to-b from-[#fef4e2] to-[#fff9ee] dark:from-[#2a2011] dark:to-[#221a0e] p-5 text-center">
+        <section className="rounded-2xl border border-line bg-gradient-to-b from-[#fef4e2] to-[#fff9ee] p-5 text-center">
           <h2 className="text-[16px] font-bold mb-3">Best Day</h2>
           <span className="inline-grid place-items-center w-12 h-12 rounded-2xl bg-surface text-amber mb-3">
             <IconTrophy />

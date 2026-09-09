@@ -9,32 +9,32 @@ import { IconArrow } from "@/components/app/icons";
 export function Hero({ firstName, cta }: { firstName: string; cta: { label: string; href: string } }) {
   return (
     <section className="relative overflow-hidden rounded-3xl">
-      <div className="absolute inset-0 bg-gradient-to-r from-[#dbe7ff] via-[#e4ecff] to-[#f5ece6] dark:from-[#182342] dark:via-[#1b2444] dark:to-[#2a2440]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#dbe7ff] via-[#e4ecff] to-[#f5ece6]" />
       <Sunrise />
 
       <div className="relative px-6 sm:px-9 py-8 sm:py-10 grid lg:grid-cols-[1fr_auto] gap-6 items-center">
         <div className="min-w-0">
-          <p className="text-[11.5px] font-bold tracking-[0.18em] uppercase text-[#5b6b95] dark:text-ink-soft mb-3">
+          <p className="text-[11.5px] font-bold tracking-[0.18em] uppercase text-[#5b6b95] mb-3">
             Good morning ☀️
           </p>
-          <h1 className="text-[26px] sm:text-[34px] font-extrabold tracking-[-0.025em] leading-[1.1] text-[#101a35] dark:text-ink text-balance">
+          <h1 className="text-[26px] sm:text-[34px] font-extrabold tracking-[-0.025em] leading-[1.1] text-[#101a35] text-balance">
             Let&rsquo;s make it a great day, {firstName}!
           </h1>
-          <p className="mt-2 text-[15px] text-[#4a5a80] dark:text-ink-soft">
+          <p className="mt-2 text-[15px] text-[#4a5a80]">
             &ldquo;Discipline today, a better you tomorrow.&rdquo;
           </p>
 
           <Link
             href={cta.href}
-            className="mt-6 inline-flex items-center gap-2.5 h-12 px-6 rounded-full bg-[#111c38] text-white font-semibold text-[15px] hover:bg-[#1b2a4e] transition-colors dark:bg-brand dark:hover:opacity-90"
+            className="mt-6 inline-flex items-center gap-2.5 h-12 px-6 rounded-full bg-[#111c38] text-white font-semibold text-[15px] hover:bg-[#1b2a4e] transition-colors"
           >
             {cta.label}
             <IconArrow className="w-[18px] h-[18px]" />
           </Link>
         </div>
 
-        <blockquote className="hidden lg:block max-w-[190px] border-l-2 border-[#b9c8ea] dark:border-line-strong pl-4">
-          <p className="text-[14px] italic leading-relaxed text-[#4a5a80] dark:text-ink-soft">
+        <blockquote className="hidden lg:block max-w-[190px] border-l-2 border-[#b9c8ea] pl-4">
+          <p className="text-[14px] italic leading-relaxed text-[#4a5a80]">
             &ldquo;A little progress every day adds up to big results.&rdquo;
           </p>
         </blockquote>

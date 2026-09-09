@@ -11,6 +11,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Rushour",
   description: "Small steps. Bigger tomorrows.",
+  icons: { icon: "/assets/logo.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
