@@ -105,6 +105,6 @@ export async function saveConstraints(
     { $set: { profile, timezone, "onboarding.constraints": true } },
   );
 
-  revalidatePath("/today");
-  redirect("/home");
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
