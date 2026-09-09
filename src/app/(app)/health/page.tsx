@@ -55,7 +55,7 @@ export default function HealthPage() {
           <LineChart
             values={[6.8, 7.4, 6.9, 7.8, 7.1, 7.9, 7.2]}
             labels={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
-            yTicks={["9h", "7h", "5h"]}
+            unit="h"
             height={150}
           />
         </section>

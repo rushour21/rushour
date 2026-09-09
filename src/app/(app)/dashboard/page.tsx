@@ -5,6 +5,7 @@ import { Panel } from "@/components/dash/panel";
 import { TaskList } from "@/components/dash/task-list";
 import { GoalList } from "@/components/dash/goal-list";
 import { DateNav } from "@/components/app/rail";
+import { WeekBars } from "@/components/dash/week-bars";
 import { Donut, Legend } from "@/components/app/bits";
 import {
   IconArrow,
@@ -157,30 +158,8 @@ export default function DashboardPage() {
 
         <Panel title="This Week" action={{ label: "View all", href: "/analytics" }}>
           <div className="flex items-end gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-end gap-1.5 h-[104px]">
-                {WEEK_BARS.map((b) => (
-                  <div key={b.day} className="flex-1 h-full flex items-end">
-                    <div
-                      className={`w-full rounded-t-md ${
-                        b.value === 100 ? "bg-brand" : "bg-brand/25"
-                      }`}
-                      style={{ height: `${b.value}%` }}
-                      title={`${b.day}: ${b.value}%`}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-1.5 mt-2">
-                {WEEK_BARS.map((b) => (
-                  <span
-                    key={b.day}
-                    className="flex-1 text-center text-[11px] text-ink-faint"
-                  >
-                    {b.day}
-                  </span>
-                ))}
-              </div>
+            <div className="flex-1 min-w-0 h-[130px]">
+              <WeekBars data={WEEK_BARS} />
             </div>
 
             <ul className="flex flex-col gap-3 shrink-0">

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { IconChevronLeft, IconChevronRight } from "./icons";
+import { useRef, useState } from "react";
+import { DayPicker } from "react-day-picker";
+import { addDays, addWeeks, format, isSameDay, isToday as isTodayFns, startOfWeek } from "date-fns";
+import { IconCalendar, IconChevronLeft, IconChevronRight } from "./icons";
 
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -9,6 +11,13 @@ const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
  * The date header and week strip that opens the right rail on every screen.
  * Selecting a day is local state for now - the flow is what is being designed,
  * and the surrounding panels take their dates as props.
+ *
+ * Date math is date-fns throughout (no hand-rolled startOfWeek/addDays), and
+ * "jump to date" is a real react-day-picker month calendar in a popover -
+ * the week strip stays for fast prev/next-week browsing, since that's a
+ * different interaction than a calendar library models, but picking an
+ * arbitrary date goes through the accessible, keyboard-navigable library
+ * component rather than a hand-built grid.
  */
 export function DateNav({
   date,
@@ -20,10 +29,12 @@ export function DateNav({
   compact?: boolean;
 }) {
   const [selected, setSelected] = useState(date);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
 
-  const monday = startOfWeek(selected);
+  const monday = startOfWeek(selected, { weekStartsOn: 1 });
   const week = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
-  const isToday = sameDay(selected, new Date());
+  const isToday = isTodayFns(selected);
 
   function pick(d: Date) {
     setSelected(d);
@@ -31,23 +42,28 @@ export function DateNav({
   }
 
   return (
-    <div className={compact ? "" : "bg-surface border border-line rounded-2xl p-4 shadow-[var(--shadow-card)]"}>
+    <div
+      ref={anchorRef}
+      className={`relative ${compact ? "" : "bg-surface border border-line rounded-2xl p-4 shadow-[var(--shadow-card)]"}`}
+    >
       <div className="flex items-center justify-between gap-2 mb-3">
-        {/* The server formats in its own locale and timezone, the browser in the
-            visitor's, so this text legitimately differs between the two renders. */}
-        <p className="text-[15px] font-bold tracking-[-0.01em]" suppressHydrationWarning>
-          {selected.toLocaleDateString(undefined, {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}
-        </p>
+        <button
+          type="button"
+          onClick={() => setPickerOpen((o) => !o)}
+          aria-expanded={pickerOpen}
+          aria-haspopup="dialog"
+          className="flex items-center gap-2 text-[15px] font-bold tracking-[-0.01em] hover:text-brand transition-colors"
+        >
+          <IconCalendar className="w-4 h-4 text-ink-faint" />
+          {/* The server formats in its own locale and timezone, the browser in
+              the visitor's, so this text legitimately differs between renders. */}
+          <span suppressHydrationWarning>{format(selected, "EEE, d MMM yyyy")}</span>
+        </button>
         <div className="flex items-center gap-1 shrink-0">
-          <RailButton label="Previous week" onClick={() => pick(addDays(selected, -7))}>
+          <RailButton label="Previous week" onClick={() => pick(addWeeks(selected, -1))}>
             <IconChevronLeft className="w-4 h-4" />
           </RailButton>
-          <RailButton label="Next week" onClick={() => pick(addDays(selected, 7))}>
+          <RailButton label="Next week" onClick={() => pick(addWeeks(selected, 1))}>
             <IconChevronRight className="w-4 h-4" />
           </RailButton>
           {!isToday && (
@@ -69,7 +85,7 @@ export function DateNav({
           </span>
         ))}
         {week.map((d) => {
-          const active = sameDay(d, selected);
+          const active = isSameDay(d, selected);
           return (
             <button
               key={d.toISOString()}
@@ -79,7 +95,7 @@ export function DateNav({
               className={`h-10 rounded-xl text-[14px] font-semibold tnum transition-colors ${
                 active
                   ? "bg-brand text-white"
-                  : sameDay(d, new Date())
+                  : isTodayFns(d)
                     ? "text-brand hover:bg-surface-2"
                     : "text-ink hover:bg-surface-2"
               }`}
@@ -89,6 +105,34 @@ export function DateNav({
           );
         })}
       </div>
+
+      {pickerOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setPickerOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-label="Jump to date"
+            className="absolute z-50 top-full left-0 mt-2 bg-surface border border-line rounded-2xl shadow-[var(--shadow-lift)] p-3"
+          >
+            <DayPicker
+              mode="single"
+              selected={selected}
+              onSelect={(d) => {
+                if (!d) return;
+                pick(d);
+                setPickerOpen(false);
+              }}
+              weekStartsOn={1}
+              showOutsideDays
+              className="rdp-rushour"
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -128,20 +172,4 @@ export function QuoteCard({ text }: { text: string }) {
       </svg>
     </div>
   );
-}
-
-function startOfWeek(d: Date): Date {
-  const out = new Date(d);
-  const day = (out.getDay() + 6) % 7; // Monday-first
-  out.setDate(out.getDate() - day);
-  out.setHours(0, 0, 0, 0);
-  return out;
-}
-function addDays(d: Date, n: number): Date {
-  const out = new Date(d);
-  out.setDate(out.getDate() + n);
-  return out;
-}
-function sameDay(a: Date, b: Date): boolean {
-  return a.toDateString() === b.toDateString();
 }

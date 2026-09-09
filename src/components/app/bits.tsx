@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 /** Segmented filter pills. One row, above the content they filter. */
 export function TabPills({
@@ -96,44 +97,34 @@ export function Donut({
   centerLabel: string;
   size?: number;
 }) {
-  const total = segments.reduce((n, s) => n + s.value, 0) || 1;
-  const r = 42;
-  const circumference = 2 * Math.PI * r;
-  const gap = 2.2;
-
-  // Each arc's start is derived from the segments before it, with no variable
-  // mutated during render - a running counter gives a different result on a
-  // re-render. Quadratic, over at most a handful of segments.
-  const arcLen = (value: number) => (value / total) * circumference;
-  const arcs = segments.map((s, i) => ({
-    ...s,
-    len: arcLen(s.value),
-    offset: segments.slice(0, i).reduce((n, prev) => n + arcLen(prev.value), 0),
-  }));
-
+  // Recharts draws the ring; the 2px surface-coloured gap between segments
+  // (matching the spec's mark rules) comes from a stroke in the ground colour
+  // rather than a manual arc-offset calculation.
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="var(--color-surface-2)" strokeWidth="11" />
-        {arcs.map((a) => {
-          const dash = Math.max(0, a.len - gap);
-          return (
-            <circle
-              key={a.label}
-              cx="50"
-              cy="50"
-              r={r}
-              fill="none"
-              stroke={a.color}
-              strokeWidth="11"
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference - dash}`}
-              strokeDashoffset={-a.offset}
-            />
-          );
-        })}
-      </svg>
-      <div className="absolute inset-0 grid place-items-center text-center">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={segments}
+            dataKey="value"
+            nameKey="label"
+            cx="50%"
+            cy="50%"
+            innerRadius="72%"
+            outerRadius="100%"
+            startAngle={90}
+            endAngle={-270}
+            stroke="var(--color-surface)"
+            strokeWidth={2}
+            isAnimationActive={false}
+          >
+            {segments.map((s) => (
+              <Cell key={s.label} fill={s.color} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="absolute inset-0 grid place-items-center text-center pointer-events-none">
         <div>
           <p className="text-[22px] font-extrabold tnum leading-none">{centerValue}</p>
           <p className="text-[11.5px] text-ink-soft mt-1">{centerLabel}</p>
@@ -142,6 +133,7 @@ export function Donut({
     </div>
   );
 }
+
 
 export function Legend({
   items,
