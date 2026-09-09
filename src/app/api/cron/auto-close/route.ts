@@ -5,7 +5,9 @@ import { DAY_ROLLOVER_HOUR, localDate, localHour } from "@/lib/time";
 import { SUSPECT_SEGMENT_MIN } from "@/lib/limits";
 
 /**
- * Auto-close (REQ-023). Hourly.
+ * Auto-close (REQ-023). Runs once daily (Vercel Hobby plan only permits
+ * daily cron schedules) - still safe since a forgotten clock-out just stays
+ * open a little longer before this catches it.
  *
  * Closes any session still open past 04:00 local the following day. Unlogged
  * time is never credited, and the session is marked unreviewed so it is
