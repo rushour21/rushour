@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 
 export default async function Home() {
   const session = await auth();
-  if (session?.user) redirect("/home");
+  if (session?.user) redirect("/dashboard");
 
   return (
     <main className="min-h-dvh flex items-center justify-center px-6 py-16">

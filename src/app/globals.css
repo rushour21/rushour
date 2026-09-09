@@ -1,51 +1,100 @@
 @import "tailwindcss";
 
 /*
-  Rushour's surface is a working tool, not a document: scanned and operated.
-  State is encoded in form as well as number, so what needs attention reads at
-  a glance without the user parsing a figure.
+  Rushour's surface: light, warm and scannable.
+  White cards on a cool off-white ground, generous radii, soft shadows, and a
+  per-card accent hue that identifies the metric rather than decorating it.
 */
 @theme {
-  --color-ground: #f5f6f9;
+  --color-ground: #f7f8fc;
   --color-surface: #ffffff;
-  --color-surface-2: #edeff4;
-  --color-ink: #12161f;
-  --color-ink-soft: #586074;
-  --color-ink-faint: #878fa1;
-  --color-rule: #dce0e9;
-  --color-rule-strong: #c3c9d6;
-  --color-accent: #1b45c4;
-  --color-accent-soft: #e6eafa;
-  --color-over: #a8371a;
-  --color-over-soft: #faeae4;
-  --color-ok: #1b7a4b;
-  --color-ok-soft: #e4f2ea;
-  --color-hold: #7a5c11;
-  --color-hold-soft: #f7f0de;
+  --color-surface-2: #f1f3f9;
+  --color-surface-3: #e8ebf3;
 
-  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
-  --font-body: var(--font-serif4), Georgia, serif;
-  --font-mono: var(--font-jbmono), ui-monospace, Menlo, monospace;
+  --color-ink: #0f172a;
+  --color-ink-soft: #64748b;
+  --color-ink-faint: #94a3b8;
+
+  --color-line: #e9ecf4;
+  --color-line-strong: #d7dcea;
+
+  --color-brand: #4f6ef7;
+  --color-brand-soft: #eef2ff;
+  --color-brand-deep: #1b2440;
+
+  --color-mint: #16a34a;
+  --color-mint-soft: #e8f7ee;
+  --color-violet: #8b5cf6;
+  --color-violet-soft: #f1ecfe;
+  --color-amber: #f59e0b;
+  --color-amber-soft: #fef4e2;
+  --color-sky: #3b82f6;
+  --color-sky-soft: #e8f0ff;
+  --color-rose: #f43f5e;
+  --color-rose-soft: #ffecef;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
+  --shadow-lift: 0 4px 12px rgba(15, 23, 42, 0.06);
+
+  /* Aliases for screens not yet restyled to the new palette. Removed as each
+     one moves over, so nothing is left pointing at a token that no longer means
+     what its name says. */
+  --color-rule: #e9ecf4;
+  --color-rule-strong: #d7dcea;
+  --color-accent: #4f6ef7;
+  --color-accent-soft: #eef2ff;
+  --color-ok: #16a34a;
+  --color-ok-soft: #e8f7ee;
+  --color-over: #f43f5e;
+  --color-over-soft: #ffecef;
+  --color-hold: #b45309;
+  --color-hold-soft: #fef4e2;
 }
 
+/*
+  Dark values are overridden as plain custom properties, NOT with a nested
+  `@theme`. Tailwind v4 only reads `@theme` at the top level; nested inside a
+  media query its declarations are emitted unconditionally, which silently
+  applied the dark palette to every visitor regardless of their OS setting.
+*/
 @media (prefers-color-scheme: dark) {
-  @theme {
-    --color-ground: #0e1117;
-    --color-surface: #161a22;
-    --color-surface-2: #1d222c;
-    --color-ink: #e4e8f0;
-    --color-ink-soft: #98a1b4;
-    --color-ink-faint: #6b7488;
-    --color-rule: #272d39;
-    --color-rule-strong: #39414f;
-    --color-accent: #89a6ff;
-    --color-accent-soft: #1b2338;
-    --color-over: #e8895c;
-    --color-over-soft: #2d1d16;
-    --color-ok: #59c68b;
-    --color-ok-soft: #14271d;
-    --color-hold: #d9b65c;
-    --color-hold-soft: #2a2416;
+  :root {
+    --color-ground: #0b0f1a;
+    --color-surface: #131826;
+    --color-surface-2: #1a2032;
+    --color-surface-3: #232b40;
+    --color-ink: #eef1f8;
+    --color-ink-soft: #98a3ba;
+    --color-ink-faint: #6b7690;
+    --color-line: #232b3d;
+    --color-line-strong: #313b52;
+    --color-brand: #7d95ff;
+    --color-brand-soft: #1c2440;
+    --color-brand-deep: #eef1f8;
+    --color-mint: #4ade80;
+    --color-mint-soft: #12261a;
+    --color-violet: #a78bfa;
+    --color-violet-soft: #221a3a;
+    --color-amber: #fbbf24;
+    --color-amber-soft: #2a2011;
+    --color-sky: #60a5fa;
+    --color-sky-soft: #141f36;
+    --color-rose: #fb7185;
+    --color-rose-soft: #2b1520;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-lift: 0 4px 14px rgba(0, 0, 0, 0.35);
+    --color-rule: #232b3d;
+    --color-rule-strong: #313b52;
+    --color-accent: #7d95ff;
+    --color-accent-soft: #1c2440;
+    --color-ok: #4ade80;
+    --color-ok-soft: #12261a;
+    --color-over: #fb7185;
+    --color-over-soft: #2b1520;
+    --color-hold: #fbbf24;
+    --color-hold-soft: #2a2011;
   }
 }
 
@@ -56,14 +105,14 @@ html {
 body {
   background: var(--color-ground);
   color: var(--color-ink);
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: 6px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -75,7 +124,20 @@ body {
   }
 }
 
-/* Numbers that sit in columns must line up. */
 .tnum {
   font-variant-numeric: tabular-nums;
+}
+
+/* Thin scrollbars inside panels, so agendas and lists don't gain a heavy rail. */
+.scroll-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+.scroll-slim::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 999px;
 }
