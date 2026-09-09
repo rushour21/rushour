@@ -125,3 +125,21 @@ export const IconChevronRight = (p: P) => (
 export const IconInfo = (p: P) => (
   <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5.5" /><circle cx="12" cy="8" r="0.7" fill="currentColor" stroke="none" /></Svg>
 );
+export const IconMoon = (p: P) => (
+  <Svg {...p}><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" /></Svg>
+);
+export const IconDrop = (p: P) => (
+  <Svg {...p}><path d="M12 3.5c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0c0-3 2.5-5.8 5.5-9.4z" /></Svg>
+);
+export const IconTrendDown = (p: P) => (
+  <Svg {...p}><path d="M4 7.5 10 14l3.5-3.5L20 17" /><path d="M20 12.5V17h-4.5" /></Svg>
+);
+export const IconTrendUp = (p: P) => (
+  <Svg {...p}><path d="M4 16.5 10 10l3.5 3.5L20 7" /><path d="M20 11.5V7h-4.5" /></Svg>
+);
+export const IconTrophy = (p: P) => (
+  <Svg {...p}><path d="M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M7 5.5H4.5V7a3 3 0 0 0 3 3M17 5.5h2.5V7a3 3 0 0 1-3 3" /><path d="M12 14v3.5M8.5 20.5h7" /></Svg>
+);
+export const IconShield = (p: P) => (
+  <Svg {...p}><path d="M12 3.5 19 6v6c0 4-3 7-7 8.5C8 19 5 16 5 12V6z" /></Svg>
+);
