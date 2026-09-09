@@ -1,7 +1,7 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { IconBell, IconChevron, IconSearch } from "./icons";
+import { useState, useSyncExternalStore } from "react";
+import { IconBell, IconChevron, IconClock, IconSearch } from "./icons";
 
 /**
  * The top bar. Search is the only control that does real work at this stage;
@@ -99,10 +99,17 @@ function Avatar({ name }: { name: string }) {
 }
 
 const CLOCK_STORAGE_KEY = "clockInTime";
+const HISTORY_STORAGE_KEY = "clockHistory";
+const MAX_HISTORY = 20;
 /** Fires in the same tab on clock in/out, so every mounted instance re-syncs -
  *  the browser's own "storage" event only reaches *other* tabs. */
 const CLOCK_EVENT = "rushour:clock-change";
 const REQUIRED_MS = 90 * 60 * 1000; // 1h 30m before clock-out unlocks
+
+interface ClockRecord {
+  clockIn: number;
+  clockOut: number;
+}
 
 /** A value that only exists in the browser, read the React-sanctioned way:
  *  through an external store rather than an effect that calls setState. That
@@ -124,6 +131,51 @@ function useClockInTime(): number | null {
     },
     () => null,
   );
+}
+
+const EMPTY_HISTORY: ClockRecord[] = [];
+/** getSnapshot must return a referentially-stable value when nothing has
+ *  changed, or useSyncExternalStore re-renders forever - JSON.parse on every
+ *  call would hand back a new array each time even for identical content.
+ *  This caches the parsed array against the raw string it came from. */
+let historyCacheRaw: string | null | undefined;
+let historyCacheParsed: ClockRecord[] = EMPTY_HISTORY;
+
+function readHistorySnapshot(): ClockRecord[] {
+  const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+  if (raw === historyCacheRaw) return historyCacheParsed;
+
+  historyCacheRaw = raw;
+  try {
+    historyCacheParsed = raw ? (JSON.parse(raw) as ClockRecord[]) : EMPTY_HISTORY;
+  } catch {
+    historyCacheParsed = EMPTY_HISTORY;
+  }
+  return historyCacheParsed;
+}
+
+/** Every completed clock-in/out pair, newest first. Kept alongside the live
+ *  in-progress state (which lives only in CLOCK_STORAGE_KEY) so a session
+ *  that hasn't been clocked out yet never appears here as a fake record. */
+function useClockHistory(): ClockRecord[] {
+  return useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener("storage", onChange);
+      window.addEventListener(CLOCK_EVENT, onChange);
+      return () => {
+        window.removeEventListener("storage", onChange);
+        window.removeEventListener(CLOCK_EVENT, onChange);
+      };
+    },
+    readHistorySnapshot,
+    () => EMPTY_HISTORY,
+  );
+}
+
+function recordSession(record: ClockRecord) {
+  const history = [record, ...readHistorySnapshot()].slice(0, MAX_HISTORY);
+  localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+  historyCacheRaw = undefined; // force a re-read on the next snapshot
 }
 
 /** Ticks once a second via the same external-store pattern, so the elapsed
@@ -149,11 +201,21 @@ function formatElapsed(ms: number): string {
   return `${h > 0 ? `${h}:` : ""}${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
+function formatClock(ms: number): string {
+  return new Date(ms).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function formatDay(ms: number): string {
+  return new Date(ms).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+}
+
 function ClockInOut() {
   const clockInTime = useClockInTime();
+  const history = useClockHistory();
   const now = useNow(clockInTime !== null);
   const elapsed = clockInTime !== null ? Math.max(0, now - clockInTime) : 0;
   const canClockOut = elapsed >= REQUIRED_MS;
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   function handleClockIn() {
     localStorage.setItem(CLOCK_STORAGE_KEY, String(Date.now()));
@@ -165,35 +227,94 @@ function ClockInOut() {
       window.alert("You must complete at least 1:30 hr before clocking out.");
       return;
     }
-    if (window.confirm("Are you sure you want to clock out?")) {
+    if (window.confirm("Are you sure you want to clock out?") && clockInTime !== null) {
+      recordSession({ clockIn: clockInTime, clockOut: Date.now() });
       localStorage.removeItem(CLOCK_STORAGE_KEY);
       window.dispatchEvent(new Event(CLOCK_EVENT));
     }
   }
 
-  if (clockInTime === null) {
-    return (
-      <button
-        onClick={handleClockIn}
-        className="px-3 py-1.5 text-[13px] font-semibold rounded-xl bg-brand text-surface hover:bg-brand/90 transition-colors shadow-sm shrink-0 hidden sm:block"
-      >
-        Clock In
-      </button>
-    );
-  }
-
   return (
-    <button
-      onClick={handleClockOut}
-      disabled={!canClockOut}
-      title={!canClockOut ? `You must work at least 1:30 hr to clock out. Elapsed: ${formatElapsed(elapsed)}` : "Clock Out"}
-      className={`px-3 py-1.5 text-[13px] font-semibold rounded-xl transition-colors shadow-sm shrink-0 hidden sm:block ${
-        canClockOut
-          ? "bg-rose text-surface hover:bg-rose/90"
-          : "bg-surface-2 text-ink-faint cursor-not-allowed border border-line"
-      }`}
-    >
-      {canClockOut ? "Clock Out" : `Working (${formatElapsed(elapsed)})`}
-    </button>
+    <div className="relative hidden sm:flex items-center gap-1.5 shrink-0">
+      {clockInTime === null ? (
+        <button
+          onClick={handleClockIn}
+          className="px-3 py-1.5 text-[13px] font-semibold rounded-xl bg-brand text-surface hover:bg-brand/90 transition-colors shadow-sm"
+        >
+          Clock In
+        </button>
+      ) : (
+        <button
+          onClick={handleClockOut}
+          disabled={!canClockOut}
+          title={
+            !canClockOut
+              ? `You must work at least 1:30 hr to clock out. Elapsed: ${formatElapsed(elapsed)}`
+              : "Clock Out"
+          }
+          className={`px-3 py-1.5 text-[13px] font-semibold rounded-xl transition-colors shadow-sm ${
+            canClockOut
+              ? "bg-rose text-surface hover:bg-rose/90"
+              : "bg-surface-2 text-ink-faint cursor-not-allowed border border-line"
+          }`}
+        >
+          {canClockOut ? "Clock Out" : `Working (${formatElapsed(elapsed)})`}
+        </button>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setHistoryOpen((o) => !o)}
+        aria-expanded={historyOpen}
+        aria-haspopup="dialog"
+        aria-label="Clock in/out history"
+        className="w-8 h-8 grid place-items-center rounded-lg border border-line text-ink-soft hover:bg-surface-2 transition-colors"
+      >
+        <IconClock className="w-4 h-4" />
+      </button>
+
+      {historyOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setHistoryOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-label="Clock in/out history"
+            className="absolute z-50 top-full right-0 mt-2 w-72 bg-surface border border-line rounded-2xl shadow-[var(--shadow-lift)] p-3"
+          >
+            <p className="text-[11.5px] font-bold tracking-[0.1em] uppercase text-ink-faint px-1 mb-2">
+              Recent sessions
+            </p>
+            {history.length === 0 ? (
+              <p className="text-[13px] text-ink-soft px-1 py-2">
+                Nothing clocked out yet.
+              </p>
+            ) : (
+              <ul className="flex flex-col max-h-64 overflow-y-auto scroll-slim">
+                {history.map((r) => (
+                  <li
+                    key={r.clockIn}
+                    className="flex items-center justify-between gap-3 px-1 py-2 border-b border-line last:border-b-0"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold truncate">{formatDay(r.clockIn)}</p>
+                      <p className="text-[12px] text-ink-soft tnum">
+                        {formatClock(r.clockIn)} &ndash; {formatClock(r.clockOut)}
+                      </p>
+                    </div>
+                    <span className="text-[12px] font-semibold tnum text-ink-soft shrink-0">
+                      {formatElapsed(r.clockOut - r.clockIn)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
