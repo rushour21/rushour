@@ -56,6 +56,8 @@ export function Topbar({
 
       <div className="flex-1" />
 
+      <ClockInOut />
+
       <button
         type="button"
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
@@ -93,5 +95,105 @@ function Avatar({ name }: { name: string }) {
     <span className="w-9 h-9 rounded-full grid place-items-center bg-brand-soft text-brand font-bold text-[13px] shrink-0">
       {initials}
     </span>
+  );
+}
+
+const CLOCK_STORAGE_KEY = "clockInTime";
+/** Fires in the same tab on clock in/out, so every mounted instance re-syncs -
+ *  the browser's own "storage" event only reaches *other* tabs. */
+const CLOCK_EVENT = "rushour:clock-change";
+const REQUIRED_MS = 90 * 60 * 1000; // 1h 30m before clock-out unlocks
+
+/** A value that only exists in the browser, read the React-sanctioned way:
+ *  through an external store rather than an effect that calls setState. That
+ *  keeps the component pure during render, and gives the correct SSR snapshot
+ *  (null) with no separate "mounted" flag needed. */
+function useClockInTime(): number | null {
+  return useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener("storage", onChange);
+      window.addEventListener(CLOCK_EVENT, onChange);
+      return () => {
+        window.removeEventListener("storage", onChange);
+        window.removeEventListener(CLOCK_EVENT, onChange);
+      };
+    },
+    () => {
+      const saved = localStorage.getItem(CLOCK_STORAGE_KEY);
+      return saved ? Number(saved) : null;
+    },
+    () => null,
+  );
+}
+
+/** Ticks once a second via the same external-store pattern, so the elapsed
+ *  read below is a pure function of props/state rather than a stray
+ *  Date.now() call during render. */
+function useNow(active: boolean): number {
+  return useSyncExternalStore(
+    (onChange) => {
+      if (!active) return () => {};
+      const id = setInterval(onChange, 1000);
+      return () => clearInterval(id);
+    },
+    () => Date.now(),
+    () => 0,
+  );
+}
+
+function formatElapsed(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${h > 0 ? `${h}:` : ""}${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
+function ClockInOut() {
+  const clockInTime = useClockInTime();
+  const now = useNow(clockInTime !== null);
+  const elapsed = clockInTime !== null ? Math.max(0, now - clockInTime) : 0;
+  const canClockOut = elapsed >= REQUIRED_MS;
+
+  function handleClockIn() {
+    localStorage.setItem(CLOCK_STORAGE_KEY, String(Date.now()));
+    window.dispatchEvent(new Event(CLOCK_EVENT));
+  }
+
+  function handleClockOut() {
+    if (!canClockOut) {
+      window.alert("You must complete at least 1:30 hr before clocking out.");
+      return;
+    }
+    if (window.confirm("Are you sure you want to clock out?")) {
+      localStorage.removeItem(CLOCK_STORAGE_KEY);
+      window.dispatchEvent(new Event(CLOCK_EVENT));
+    }
+  }
+
+  if (clockInTime === null) {
+    return (
+      <button
+        onClick={handleClockIn}
+        className="px-3 py-1.5 text-[13px] font-semibold rounded-xl bg-brand text-surface hover:bg-brand/90 transition-colors shadow-sm shrink-0 hidden sm:block"
+      >
+        Clock In
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleClockOut}
+      disabled={!canClockOut}
+      title={!canClockOut ? `You must work at least 1:30 hr to clock out. Elapsed: ${formatElapsed(elapsed)}` : "Clock Out"}
+      className={`px-3 py-1.5 text-[13px] font-semibold rounded-xl transition-colors shadow-sm shrink-0 hidden sm:block ${
+        canClockOut
+          ? "bg-rose text-surface hover:bg-rose/90"
+          : "bg-surface-2 text-ink-faint cursor-not-allowed border border-line"
+      }`}
+    >
+      {canClockOut ? "Clock Out" : `Working (${formatElapsed(elapsed)})`}
+    </button>
   );
 }
