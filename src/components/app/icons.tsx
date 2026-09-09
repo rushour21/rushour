@@ -143,3 +143,6 @@ export const IconTrophy = (p: P) => (
 export const IconShield = (p: P) => (
   <Svg {...p}><path d="M12 3.5 19 6v6c0 4-3 7-7 8.5C8 19 5 16 5 12V6z" /></Svg>
 );
+export const IconLogOut = (p: P) => (
+  <Svg {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></Svg>
+);

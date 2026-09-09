@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { IconBell, IconChevron, IconClock, IconSearch } from "./icons";
+import { signOutAction } from "@/lib/actions/auth";
+import { IconBell, IconChevron, IconClock, IconGear, IconLogOut, IconSearch } from "./icons";
 
 /**
  * The top bar. Search is the only control that does real work at this stage;
@@ -69,8 +70,21 @@ export function Topbar({
         )}
       </button>
 
+      <AccountMenu name={name} />
+    </header>
+  );
+}
+
+function AccountMenu({ name }: { name: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
       <button
         type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="menu"
         className="flex items-center gap-2.5 pl-1.5 pr-2.5 h-11 rounded-xl hover:bg-surface transition-colors"
       >
         <Avatar name={name} />
@@ -79,7 +93,49 @@ export function Topbar({
           <IconChevron className="w-4 h-4" />
         </span>
       </button>
-    </header>
+
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="menu"
+            aria-label="Account"
+            className="absolute z-50 top-full right-0 mt-2 w-56 bg-surface border border-line rounded-2xl shadow-[var(--shadow-lift)] p-1.5"
+          >
+            <div className="flex items-center gap-2.5 px-2.5 py-2 mb-1">
+              <Avatar name={name} />
+              <div className="min-w-0">
+                <p className="text-[13.5px] font-semibold truncate">{name}</p>
+                <p className="text-[12px] text-ink-faint">Signed in</p>
+              </div>
+            </div>
+            <hr className="border-line my-1" />
+            <a
+              href="/settings"
+              role="menuitem"
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13.5px] font-medium text-ink hover:bg-surface-2 transition-colors"
+            >
+              <IconGear className="w-4 h-4 text-ink-faint" />
+              Settings
+            </a>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                role="menuitem"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13.5px] font-medium text-rose hover:bg-rose-soft transition-colors"
+              >
+                <IconLogOut className="w-4 h-4" />
+                Log out
+              </button>
+            </form>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 

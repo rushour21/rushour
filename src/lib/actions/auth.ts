@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { connectDb } from "@/lib/db/client";
 import { User } from "@/lib/db/models";
 
@@ -55,5 +55,9 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
     return { error: "That email and password do not match an account." };
   }
 
-  redirect("/home");
+  redirect("/dashboard");
+}
+
+export async function signOutAction() {
+  await signOut({ redirectTo: "/sign-in" });
 }
