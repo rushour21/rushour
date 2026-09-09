@@ -166,12 +166,22 @@ export async function generateQuizBatch(
 ): Promise<QuizBatch | null> {
   const raw = await chat({
     system:
-      "You write multiple-choice interview practice questions grounded ONLY in " +
-      "the candidate's resume below - their listed skills, tools and experience. " +
-      "Never ask about a technology, language or domain the resume does not " +
-      "mention. Each question has exactly 4 options, exactly one correct, and a " +
-      "one-sentence explanation of why the correct answer is right. Target " +
-      `difficulty: ${DIFFICULTY_LABEL[difficulty] ?? DIFFICULTY_LABEL[1]}. ` +
+      "First silently work out the job role this resume points to (e.g. " +
+      "'Backend Engineer', 'Full-Stack / AI Engineer') and the skills, tools " +
+      "and systems it lists. Then write multiple-choice questions a real " +
+      "interviewer would ask a candidate for that role - technical-knowledge " +
+      "and scenario/troubleshooting questions that test whether the candidate " +
+      "actually understands the technologies on their resume, e.g. 'How would " +
+      "you implement refresh-token rotation for JWT auth?' or 'Your AES-128 " +
+      "HLS stream plays on Chrome but fails to decrypt on Safari - what's the " +
+      "likely cause?'. NEVER ask the candidate to recall their own resume " +
+      "(no 'Which X did the candidate use/implement', 'What advantage does X " +
+      "provide in the candidate's project'-style questions) - the candidate " +
+      "already knows what they built; test whether they understand it. Stay " +
+      "strictly within the technologies, tools and domains the resume " +
+      "actually mentions. Each question has exactly 4 options, exactly one " +
+      "correct, and a one-sentence explanation of why the correct answer is " +
+      `right. Target difficulty: ${DIFFICULTY_LABEL[difficulty] ?? DIFFICULTY_LABEL[1]}. ` +
       "Vary the topic across questions rather than repeating the same skill. " +
       "Never repeat, or closely rephrase, any question in the excluded list.",
     user: JSON.stringify({
