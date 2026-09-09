@@ -8,6 +8,13 @@ import { useSyncExternalStore } from "react";
  * the raw string it came from, so reads stay pure and referentially stable.
  */
 export interface Profile {
+  name: string;
+  email: string;
+  location: string;
+  timezone: string;
+  bio: string;
+  goalTags: string[];
+  interestTags: string[];
   resumeText: string;
   resumeFileName: string | null;
   updatedAt: number | null;
@@ -15,7 +22,18 @@ export interface Profile {
 
 const KEY = "rushour.profile";
 const EVENT = "rushour:store:profile";
-const EMPTY: Profile = { resumeText: "", resumeFileName: null, updatedAt: null };
+const EMPTY: Profile = {
+  name: "",
+  email: "",
+  location: "",
+  timezone: "",
+  bio: "",
+  goalTags: [],
+  interestTags: [],
+  resumeText: "",
+  resumeFileName: null,
+  updatedAt: null,
+};
 
 let cacheRaw: string | null | undefined;
 let cacheParsed: Profile = EMPTY;
@@ -44,17 +62,22 @@ function subscribe(onChange: () => void) {
   };
 }
 
+function write(next: Profile) {
+  window.localStorage.setItem(KEY, JSON.stringify(next));
+  cacheRaw = undefined;
+  window.dispatchEvent(new Event(EVENT));
+}
+
 export const profileStore = {
   useProfile: (): Profile => useSyncExternalStore(subscribe, read, () => EMPTY),
+  /** Merges into the existing record - never drops fields it wasn't given. */
+  update: (patch: Partial<Profile>) => {
+    write({ ...read(), ...patch, updatedAt: Date.now() });
+  },
   setResume: (resumeText: string, resumeFileName: string | null) => {
-    const next: Profile = { resumeText, resumeFileName, updatedAt: Date.now() };
-    window.localStorage.setItem(KEY, JSON.stringify(next));
-    cacheRaw = undefined;
-    window.dispatchEvent(new Event(EVENT));
+    write({ ...read(), resumeText, resumeFileName, updatedAt: Date.now() });
   },
   clearResume: () => {
-    window.localStorage.removeItem(KEY);
-    cacheRaw = undefined;
-    window.dispatchEvent(new Event(EVENT));
+    write({ ...read(), resumeText: "", resumeFileName: null, updatedAt: Date.now() });
   },
 };

@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { signOutAction } from "@/lib/actions/auth";
+import { profileStore } from "@/lib/store/profile";
 import { IconBell, IconChevron, IconClock, IconGear, IconLogOut, IconSearch } from "./icons";
 
 /**
@@ -75,8 +76,10 @@ export function Topbar({
   );
 }
 
-function AccountMenu({ name }: { name: string }) {
+function AccountMenu({ name: fallbackName }: { name: string }) {
   const [open, setOpen] = useState(false);
+  const profile = profileStore.useProfile();
+  const name = profile.name.trim() || fallbackName;
 
   return (
     <div className="relative">
