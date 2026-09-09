@@ -3,6 +3,18 @@
 import { useState, useSyncExternalStore } from "react";
 import { signOutAction } from "@/lib/actions/auth";
 import { profileStore } from "@/lib/store/profile";
+import {
+  CLOCK_EVENT,
+  CLOCK_STORAGE_KEY,
+  formatClock,
+  formatDay,
+  formatElapsed,
+  recordSession,
+  REQUIRED_MS,
+  useClockHistory,
+  useClockInTime,
+  useNow,
+} from "@/lib/store/clock";
 import { IconBell, IconChevron, IconClock, IconGear, IconLogOut, IconSearch } from "./icons";
 
 /**
@@ -155,117 +167,6 @@ function Avatar({ name }: { name: string }) {
       {initials}
     </span>
   );
-}
-
-const CLOCK_STORAGE_KEY = "clockInTime";
-const HISTORY_STORAGE_KEY = "clockHistory";
-const MAX_HISTORY = 20;
-/** Fires in the same tab on clock in/out, so every mounted instance re-syncs -
- *  the browser's own "storage" event only reaches *other* tabs. */
-const CLOCK_EVENT = "rushour:clock-change";
-const REQUIRED_MS = 90 * 60 * 1000; // 1h 30m before clock-out unlocks
-
-interface ClockRecord {
-  clockIn: number;
-  clockOut: number;
-}
-
-/** A value that only exists in the browser, read the React-sanctioned way:
- *  through an external store rather than an effect that calls setState. That
- *  keeps the component pure during render, and gives the correct SSR snapshot
- *  (null) with no separate "mounted" flag needed. */
-function useClockInTime(): number | null {
-  return useSyncExternalStore(
-    (onChange) => {
-      window.addEventListener("storage", onChange);
-      window.addEventListener(CLOCK_EVENT, onChange);
-      return () => {
-        window.removeEventListener("storage", onChange);
-        window.removeEventListener(CLOCK_EVENT, onChange);
-      };
-    },
-    () => {
-      const saved = localStorage.getItem(CLOCK_STORAGE_KEY);
-      return saved ? Number(saved) : null;
-    },
-    () => null,
-  );
-}
-
-const EMPTY_HISTORY: ClockRecord[] = [];
-/** getSnapshot must return a referentially-stable value when nothing has
- *  changed, or useSyncExternalStore re-renders forever - JSON.parse on every
- *  call would hand back a new array each time even for identical content.
- *  This caches the parsed array against the raw string it came from. */
-let historyCacheRaw: string | null | undefined;
-let historyCacheParsed: ClockRecord[] = EMPTY_HISTORY;
-
-function readHistorySnapshot(): ClockRecord[] {
-  const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-  if (raw === historyCacheRaw) return historyCacheParsed;
-
-  historyCacheRaw = raw;
-  try {
-    historyCacheParsed = raw ? (JSON.parse(raw) as ClockRecord[]) : EMPTY_HISTORY;
-  } catch {
-    historyCacheParsed = EMPTY_HISTORY;
-  }
-  return historyCacheParsed;
-}
-
-/** Every completed clock-in/out pair, newest first. Kept alongside the live
- *  in-progress state (which lives only in CLOCK_STORAGE_KEY) so a session
- *  that hasn't been clocked out yet never appears here as a fake record. */
-function useClockHistory(): ClockRecord[] {
-  return useSyncExternalStore(
-    (onChange) => {
-      window.addEventListener("storage", onChange);
-      window.addEventListener(CLOCK_EVENT, onChange);
-      return () => {
-        window.removeEventListener("storage", onChange);
-        window.removeEventListener(CLOCK_EVENT, onChange);
-      };
-    },
-    readHistorySnapshot,
-    () => EMPTY_HISTORY,
-  );
-}
-
-function recordSession(record: ClockRecord) {
-  const history = [record, ...readHistorySnapshot()].slice(0, MAX_HISTORY);
-  localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
-  historyCacheRaw = undefined; // force a re-read on the next snapshot
-}
-
-/** Ticks once a second via the same external-store pattern, so the elapsed
- *  read below is a pure function of props/state rather than a stray
- *  Date.now() call during render. */
-function useNow(active: boolean): number {
-  return useSyncExternalStore(
-    (onChange) => {
-      if (!active) return () => {};
-      const id = setInterval(onChange, 1000);
-      return () => clearInterval(id);
-    },
-    () => Date.now(),
-    () => 0,
-  );
-}
-
-function formatElapsed(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
-  return `${h > 0 ? `${h}:` : ""}${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-}
-
-function formatClock(ms: number): string {
-  return new Date(ms).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-}
-
-function formatDay(ms: number): string {
-  return new Date(ms).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
 }
 
 function ClockInOut() {
