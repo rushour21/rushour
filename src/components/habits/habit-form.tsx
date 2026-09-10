@@ -58,12 +58,9 @@ export function HabitForm({
       target: target.trim() ? `Target: ${target.trim()}` : "No target set",
       icon,
       tone: habit?.tone ?? TONES[Math.floor(Math.random() * TONES.length)],
-      done: habit?.done ?? false,
-      value: habit?.value,
       frequency,
-      streak: habit?.streak ?? 0,
-      completion: habit?.completion ?? 0,
       goal: { label: chosenGoal.label, tone: chosenGoal.tone },
+      completedDates: habit?.completedDates ?? [],
     });
 
     if (!editing) {

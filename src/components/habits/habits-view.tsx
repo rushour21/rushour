@@ -7,7 +7,7 @@ import { ConfirmDialog } from "@/components/app/modal";
 import { Button } from "@/components/app/bits";
 import { IconChevronLeft, IconChevronRight, IconDots, IconPlus } from "@/components/app/icons";
 import { habitStore } from "@/lib/store/entities";
-import type { Habit } from "@/lib/sample/habits";
+import { habitCompletionPct, habitStreak, localDateKey, type Habit } from "@/lib/sample/habits";
 
 const GOAL_CHIP = {
   mint: "bg-mint-soft text-mint",
@@ -86,7 +86,15 @@ export function HabitsView() {
             <HabitRow
               key={h.id}
               habit={h}
-              onToggle={() => habitStore.update(h.id, { done: !h.done })}
+              onToggle={() => {
+                const today = localDateKey(new Date());
+                const has = h.completedDates.includes(today);
+                habitStore.update(h.id, {
+                  completedDates: has
+                    ? h.completedDates.filter((d) => d !== today)
+                    : [...h.completedDates, today],
+                });
+              }}
               onEdit={() => {
                 setEditing(h);
                 setFormOpen(true);
@@ -109,7 +117,7 @@ export function HabitsView() {
                 <th className="px-5 py-2.5 font-semibold">Habit</th>
                 <th className="px-3 py-2.5 font-semibold">Frequency</th>
                 <th className="px-3 py-2.5 font-semibold">Current Streak</th>
-                <th className="px-3 py-2.5 font-semibold">Avg. Completion</th>
+                <th className="px-3 py-2.5 font-semibold">30-Day Completion</th>
                 <th className="px-3 py-2.5 font-semibold">Goal Link</th>
                 <th className="px-5 py-2.5 font-semibold text-right">Actions</th>
               </tr>
@@ -120,9 +128,9 @@ export function HabitsView() {
                   <td className="px-5 py-3 font-semibold">{h.name}</td>
                   <td className="px-3 py-3 text-ink-soft">{h.frequency}</td>
                   <td className="px-3 py-3 tnum text-ink-soft">
-                    {h.streak} {h.streak === 1 ? "day" : "days"}
+                    {habitStreak(h)} {habitStreak(h) === 1 ? "day" : "days"}
                   </td>
-                  <td className="px-3 py-3 tnum text-ink-soft">{h.completion}%</td>
+                  <td className="px-3 py-3 tnum text-ink-soft">{habitCompletionPct(h, 30)}%</td>
                   <td className="px-3 py-3">
                     <span className={`text-[11px] font-semibold px-2 py-1 rounded-md ${GOAL_CHIP[h.goal.tone]}`}>
                       {h.goal.label}

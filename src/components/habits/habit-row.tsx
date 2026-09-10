@@ -10,7 +10,7 @@ import {
   IconMoon,
   IconSun,
 } from "@/components/app/icons";
-import type { Habit } from "@/lib/sample/habits";
+import { isDoneOn, localDateKey, type Habit } from "@/lib/sample/habits";
 
 const ICON: Record<string, React.ReactNode> = {
   sun: <IconSun />,
@@ -45,7 +45,7 @@ export function HabitRow({
   onEdit?: () => void;
   onDelete?: () => void;
 }) {
-  const done = habit.done;
+  const done = isDoneOn(habit, localDateKey(new Date()));
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -78,9 +78,6 @@ export function HabitRow({
 
       {done ? (
         <div className="flex items-center gap-2.5 shrink-0">
-          {habit.value && (
-            <span className="text-[13px] font-semibold tnum text-ink-soft">{habit.value}</span>
-          )}
           <span className="text-[12px] font-semibold px-2.5 py-1.5 rounded-lg bg-mint-soft text-mint">
             Done
           </span>
