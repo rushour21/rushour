@@ -149,3 +149,6 @@ export const IconLogOut = (p: P) => (
 export const IconQuiz = (p: P) => (
   <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M9.2 9.2a2.8 2.8 0 1 1 3.9 2.6c-.9.4-1.1 1-1.1 1.8" /><circle cx="12" cy="16.7" r="0.7" fill="currentColor" stroke="none" /></Svg>
 );
+export const IconX = (p: P) => (
+  <Svg {...p}><path d="M6 6l12 12M18 6 6 18" /></Svg>
+);

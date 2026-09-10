@@ -4,13 +4,14 @@ import { GoalList } from "./goal-list";
 import { StatCard } from "./stat-cards";
 import { IconBook, IconHeart, IconLaptop, IconSuitcase, IconTarget } from "@/components/app/icons";
 import { goalStore } from "@/lib/store/entities";
+import { goalDone, goalProgress } from "@/lib/sample/goals";
 
 const ICONS = [<IconLaptop key="a" />, <IconHeart key="b" />, <IconBook key="c" />, <IconSuitcase key="d" />];
 
 /** "Goals in progress" stat card, reading the live store instead of a fixed "2 / 4". */
 export function GoalsStat() {
   const goals = goalStore.useItems();
-  const active = goals.filter((g) => g.status !== "done");
+  const active = goals.filter((g) => !goalDone(g));
   const total = Math.max(goals.length, 1);
 
   return (
@@ -34,7 +35,7 @@ export function GoalsPanel() {
         id: g.id,
         title: g.title,
         subtitle: g.detail,
-        pct: g.pct,
+        pct: goalProgress(g),
         tone: g.tone,
         icon: ICONS[i % ICONS.length],
       }))}

@@ -13,7 +13,7 @@ import {
   IconSuitcase,
 } from "@/components/app/icons";
 import { goalStore } from "@/lib/store/entities";
-import type { Goal } from "@/lib/sample/goals";
+import { goalDone, type Goal } from "@/lib/sample/goals";
 
 const ICONS = [<IconLaptop key="a" />, <IconHeart key="b" />, <IconBook key="c" />, <IconSuitcase key="d" />];
 
@@ -29,8 +29,8 @@ export function GoalsView() {
 
   const visible = goals.filter((g) => {
     if (tab === "All Goals") return true;
-    if (tab === "Active") return g.status !== "done";
-    if (tab === "Completed") return g.status === "done";
+    if (tab === "Active") return !goalDone(g);
+    if (tab === "Completed") return goalDone(g);
     return g.tags.includes(tab);
   });
 

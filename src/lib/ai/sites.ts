@@ -166,22 +166,25 @@ export async function generateQuizBatch(
 ): Promise<QuizBatch | null> {
   const raw = await chat({
     system:
-      "First silently work out the job role this resume points to (e.g. " +
-      "'Backend Engineer', 'Full-Stack / AI Engineer') and the skills, tools " +
-      "and systems it lists. Then write multiple-choice questions a real " +
-      "interviewer would ask a candidate for that role - technical-knowledge " +
-      "and scenario/troubleshooting questions that test whether the candidate " +
-      "actually understands the technologies on their resume, e.g. 'How would " +
-      "you implement refresh-token rotation for JWT auth?' or 'Your AES-128 " +
-      "HLS stream plays on Chrome but fails to decrypt on Safari - what's the " +
-      "likely cause?'. NEVER ask the candidate to recall their own resume " +
-      "(no 'Which X did the candidate use/implement', 'What advantage does X " +
-      "provide in the candidate's project'-style questions) - the candidate " +
-      "already knows what they built; test whether they understand it. Stay " +
-      "strictly within the technologies, tools and domains the resume " +
-      "actually mentions. Each question has exactly 4 options, exactly one " +
-      "correct, and a one-sentence explanation of why the correct answer is " +
-      `right. Target difficulty: ${DIFFICULTY_LABEL[difficulty] ?? DIFFICULTY_LABEL[1]}. ` +
+      "List the distinct skills, languages, frameworks, libraries and tools " +
+      "named on this resume (e.g. React, JavaScript, SQL, Node.js). For each " +
+      "one, write a standard technical-interview question about that " +
+      "technology as a general concept - the kind any interviewer asks any " +
+      "candidate who lists that skill. Good examples: 'What is a JavaScript " +
+      "Promise?', 'What does React's useReducer hook do and when would you " +
+      "reach for it over useState?', 'Which SQL clause combines rows from " +
+      "two tables using a related column?', 'What is the time complexity of " +
+      "binary search?'. Bad examples - never write these: anything that " +
+      "names or alludes to a specific project, product, company or thing the " +
+      "person built ('their AI video platform', 'their chat app', 'their " +
+      "dashboard'), and anything phrased as 'the candidate did/used/built X' " +
+      "or 'in the candidate's project'. Do not use the words 'candidate', " +
+      "'resume', 'project' or 'they built' anywhere in the question or " +
+      "explanation - ask about the technology itself, exactly as a textbook " +
+      "or interview-prep question would. Stay strictly within technologies " +
+      "actually listed on the resume. Each question has exactly 4 options, " +
+      "exactly one correct, and a one-sentence explanation of why the " +
+      `correct answer is right. Target difficulty: ${DIFFICULTY_LABEL[difficulty] ?? DIFFICULTY_LABEL[1]}. ` +
       "Vary the topic across questions rather than repeating the same skill. " +
       "Never repeat, or closely rephrase, any question in the excluded list.",
     user: JSON.stringify({

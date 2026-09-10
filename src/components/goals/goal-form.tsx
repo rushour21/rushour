@@ -30,7 +30,6 @@ export function GoalForm({
   const [detail, setDetail] = useState(goal?.detail ?? "");
   const [priority, setPriority] = useState<Goal["priority"]>(goal?.priority ?? "High");
   const [tag, setTag] = useState(goal?.tags[0] ?? "Career");
-  const [milestones, setMilestones] = useState(goal?.milestones[1] ?? 5);
 
   const editing = Boolean(goal);
   const valid = title.trim().length > 0;
@@ -43,14 +42,10 @@ export function GoalForm({
       id: goal?.id ?? newId("goal"),
       title: title.trim(),
       detail: detail.trim(),
-      pct: goal?.pct ?? 0,
       tags: [tag],
       priority,
-      milestones: [goal?.milestones[0] ?? 0, milestones],
-      tasks: goal?.tasks ?? 0,
-      projects: goal?.projects ?? 0,
+      milestones: goal?.milestones ?? [],
       tone: goal?.tone ?? TONES[Math.floor(Math.random() * TONES.length)],
-      status: goal?.status ?? "on-track",
     });
 
     if (!editing) {
@@ -65,7 +60,7 @@ export function GoalForm({
       open={open}
       onClose={onClose}
       title={editing ? "Edit goal" : "Create a goal"}
-      description={editing ? undefined : "A year-level direction, broken into milestones."}
+      description={editing ? undefined : "A year-level direction. Add milestones once it's created."}
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Field label="Goal" htmlFor="goal-title">
@@ -91,28 +86,14 @@ export function GoalForm({
           <ChoiceRow name="Priority" value={priority} onChange={setPriority} options={PRIORITIES} />
         </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Area" htmlFor="goal-tag">
-            <SelectInput
-              id="goal-tag"
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-              options={TAGS.map((t) => ({ value: t, label: t }))}
-            />
-          </Field>
-
-          <Field label="Milestones" htmlFor="goal-milestones">
-            <SelectInput
-              id="goal-milestones"
-              value={String(milestones)}
-              onChange={(e) => setMilestones(Number(e.target.value))}
-              options={[3, 4, 5, 6, 8, 10, 12].map((n) => ({
-                value: String(n),
-                label: `${n} milestones`,
-              }))}
-            />
-          </Field>
-        </div>
+        <Field label="Area" htmlFor="goal-tag">
+          <SelectInput
+            id="goal-tag"
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
+            options={TAGS.map((t) => ({ value: t, label: t }))}
+          />
+        </Field>
 
         <FormActions
           onCancel={onClose}

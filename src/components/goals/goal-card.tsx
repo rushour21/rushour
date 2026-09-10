@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { IconArrow, IconBookmark, IconCheck, IconDots, IconNote } from "@/components/app/icons";
-import type { Goal } from "@/lib/sample/goals";
+import { IconDots, IconPlus, IconX } from "@/components/app/icons";
+import { goalProgress, type Goal } from "@/lib/sample/goals";
+import { goalStore } from "@/lib/store/entities";
+import { newId } from "@/lib/store/local-store";
 
 const TONE = {
   sky: { wash: "bg-sky-soft/45", chip: "bg-sky-soft text-sky", bar: "bg-sky" },
@@ -19,9 +21,10 @@ const TAG_CHIP: Record<string, string> = {
 };
 
 /**
- * A year goal: the goal itself on a tinted field, and its breakdown in a plain
- * panel beside it. Splitting them keeps the counts legible - milestones, tasks
- * and projects are navigation, not part of the goal's own statement.
+ * A year goal: the goal itself on a tinted field, and its milestone
+ * checklist beside it. Progress is derived from the checklist rather than
+ * stored, so it's always exactly what's been checked off - and checking
+ * one off is how you "update a milestone".
  */
 export function GoalCard({
   goal,
@@ -36,9 +39,33 @@ export function GoalCard({
 }) {
   const t = TONE[goal.tone];
   const [menuOpen, setMenuOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const pct = goalProgress(goal);
+
+  function addMilestone(e: React.FormEvent) {
+    e.preventDefault();
+    const title = draft.trim();
+    if (!title) return;
+    goalStore.update(goal.id, {
+      milestones: [...goal.milestones, { id: newId("ms"), title, done: false }],
+    });
+    setDraft("");
+  }
+
+  function toggleMilestone(id: string) {
+    goalStore.update(goal.id, {
+      milestones: goal.milestones.map((m) => (m.id === id ? { ...m, done: !m.done } : m)),
+    });
+  }
+
+  function removeMilestone(id: string) {
+    goalStore.update(goal.id, {
+      milestones: goal.milestones.filter((m) => m.id !== id),
+    });
+  }
 
   return (
-    <article className="rounded-2xl border border-line bg-surface overflow-hidden shadow-[var(--shadow-card)] grid md:grid-cols-[minmax(0,1fr)_220px]">
+    <article className="rounded-2xl border border-line bg-surface overflow-hidden shadow-[var(--shadow-card)] grid md:grid-cols-[minmax(0,1fr)_260px]">
       <div className={`p-5 ${t.wash}`}>
         <div className="flex gap-4">
           <span className={`w-12 h-12 rounded-2xl grid place-items-center shrink-0 bg-surface ${t.chip.split(" ")[1]}`}>
@@ -101,12 +128,9 @@ export function GoalCard({
 
             <div className="mt-3.5 flex items-center gap-3">
               <span className="flex-1 h-2 rounded-full bg-surface/70 overflow-hidden">
-                <span
-                  className={`block h-full rounded-full ${t.bar}`}
-                  style={{ width: `${goal.pct}%` }}
-                />
+                <span className={`block h-full rounded-full ${t.bar}`} style={{ width: `${pct}%` }} />
               </span>
-              <span className="text-[13px] font-bold tnum text-ink-soft shrink-0">{goal.pct}%</span>
+              <span className="text-[13px] font-bold tnum text-ink-soft shrink-0">{pct}%</span>
             </div>
 
             <div className="mt-3.5 flex flex-wrap gap-2">
@@ -132,38 +156,65 @@ export function GoalCard({
         </div>
       </div>
 
-      <div className="p-5 flex flex-col justify-center gap-3.5 border-t md:border-t-0 md:border-l border-line">
-        <Stat icon={<IconCheck />} value={`${goal.milestones[0]} / ${goal.milestones[1]}`} label="Milestones" />
-        <Stat icon={<IconNote />} value={String(goal.tasks)} label="Tasks" href />
-        <Stat icon={<IconBookmark />} value={String(goal.projects)} label={goal.projects === 1 ? "Project" : "Projects"} />
+      <div className="p-5 flex flex-col gap-2.5 border-t md:border-t-0 md:border-l border-line">
+        <p className="text-[11.5px] font-bold tracking-[0.1em] uppercase text-ink-faint mb-0.5">
+          Milestones ({goal.milestones.filter((m) => m.done).length} / {goal.milestones.length})
+        </p>
+
+        {goal.milestones.length === 0 && (
+          <p className="text-[12.5px] text-ink-faint">No milestones yet - add the first step below.</p>
+        )}
+
+        <ul className="flex flex-col gap-1 max-h-40 overflow-y-auto scroll-slim">
+          {goal.milestones.map((m) => (
+            <li key={m.id} className="flex items-center gap-2 group">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={m.done}
+                onClick={() => toggleMilestone(m.id)}
+                className={`w-4 h-4 shrink-0 rounded-[5px] border grid place-items-center transition-colors ${
+                  m.done ? `${t.bar} border-transparent` : "border-line-strong"
+                }`}
+              >
+                {m.done && (
+                  <svg viewBox="0 0 24 24" className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                )}
+              </button>
+              <span className={`flex-1 min-w-0 text-[13px] truncate ${m.done ? "line-through text-ink-faint" : ""}`}>
+                {m.title}
+              </span>
+              <button
+                type="button"
+                aria-label={`Remove milestone ${m.title}`}
+                onClick={() => removeMilestone(m.id)}
+                className="opacity-0 group-hover:opacity-100 text-ink-faint hover:text-rose shrink-0 transition-opacity"
+              >
+                <IconX className="w-3.5 h-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <form onSubmit={addMilestone} className="mt-1 flex items-center gap-1.5">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Add a milestone"
+            className="flex-1 min-w-0 h-8 px-2.5 rounded-lg bg-surface-2 border border-line text-[12.5px] outline-none focus:border-brand transition-colors"
+          />
+          <button
+            type="submit"
+            disabled={!draft.trim()}
+            aria-label="Add milestone"
+            className="w-8 h-8 shrink-0 grid place-items-center rounded-lg bg-brand-soft text-brand disabled:opacity-40 hover:opacity-80 transition-opacity"
+          >
+            <IconPlus className="w-4 h-4" />
+          </button>
+        </form>
       </div>
     </article>
-  );
-}
-
-function Stat({
-  icon,
-  value,
-  label,
-  href,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-  href?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-ink-faint shrink-0">{icon}</span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-bold tnum leading-tight">{value}</p>
-        <p className="text-[12px] text-ink-soft">{label}</p>
-      </div>
-      {href && (
-        <span className="text-ink-faint shrink-0">
-          <IconArrow className="w-4 h-4" />
-        </span>
-      )}
-    </div>
   );
 }
