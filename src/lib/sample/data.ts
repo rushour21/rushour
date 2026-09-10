@@ -70,68 +70,6 @@ export const CATEGORY_CHIP: Record<Category, string> = {
   Career: "bg-rose-soft text-rose",
 };
 
-export interface Block {
-  id: string;
-  time: string;
-  title: string;
-  detail?: string;
-  minutes: number;
-  kind: "deep" | "meeting" | "break" | "health" | "admin";
-}
-
-export const PLAN_BLOCKS: Block[] = [
-  { id: "b1", time: "9:00 AM", title: "Deep Work", detail: "Finish authentication system", minutes: 120, kind: "deep" },
-  { id: "b2", time: "11:00 AM", title: "Team meeting", minutes: 30, kind: "meeting" },
-  { id: "b3", time: "12:00 PM", title: "Lunch break", minutes: 60, kind: "break" },
-  { id: "b4", time: "1:00 PM", title: "Deep Work", detail: "Continue authentication", minutes: 150, kind: "deep" },
-  { id: "b5", time: "3:30 PM", title: "Workout", minutes: 60, kind: "health" },
-  { id: "b6", time: "5:00 PM", title: "Wrap up & plan tomorrow", minutes: 30, kind: "admin" },
-];
-
-export const PROJECTS = [
-  { id: "p1", name: "Portfolio", count: 8, tone: "sky" as const },
-  { id: "p2", name: "Job Search", count: 6, tone: "rose" as const },
-  { id: "p3", name: "Learning", count: 5, tone: "violet" as const },
-  { id: "p4", name: "Health", count: 4, tone: "mint" as const },
-  { id: "p5", name: "Personal", count: 3, tone: "sky" as const },
-];
-
-export const GOALS = [
-  { id: "g1", title: "Grow in my career", subtitle: "Learn and build valuable skills", pct: 70, tone: "amber" as const },
-  { id: "g2", title: "Be healthier", subtitle: "Workout 4x per week", pct: 50, tone: "rose" as const },
-  { id: "g3", title: "Read more", subtitle: "12 books this year", pct: 25, tone: "violet" as const },
-];
-
-export const OUTCOME = {
-  title: "Build authentication system",
-  detail: "Ship a working MVP with login, signup and session management.",
-};
-
-export const CAPACITY = { availableMin: 330, plannedMin: 285 };
-
-export const DAY_INSIGHTS = [
-  { id: "i1", tone: "mint" as const, text: "Your plan fits your available time." },
-  { id: "i2", tone: "sky" as const, text: "2 focus blocks (4h 30m) — great!" },
-  { id: "i3", tone: "rose" as const, text: "You're including health — keep it up!" },
-  { id: "i4", tone: "amber" as const, text: "Consider moving 1 low-priority task to tomorrow." },
-];
-
-export const WEEK_BARS = [
-  { day: "Mon", value: 45 },
-  { day: "Tue", value: 58 },
-  { day: "Wed", value: 100 },
-  { day: "Thu", value: 38 },
-  { day: "Fri", value: 22 },
-  { day: "Sat", value: 62 },
-  { day: "Sun", value: 40 },
-];
-
-export const FOCUS_SPLIT = [
-  { label: "Deep Work", value: 135, color: "#3b82f6" },
-  { label: "Meetings", value: 80, color: "#8b5cf6" },
-  { label: "Admin", value: 45, color: "#f59e0b" },
-];
-
 export function hm(min: number): string {
   const h = Math.floor(min / 60);
   const m = min % 60;
