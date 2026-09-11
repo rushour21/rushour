@@ -23,7 +23,11 @@ export async function connectDb(): Promise<typeof mongoose> {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(uri, { bufferCommands: false });
+    // A short timeout matters in serverless: the driver's 30s default can
+    // run right up against the platform's own function timeout, turning an
+    // unreachable database into a slow, opaque 500 instead of a fast,
+    // diagnosable one.
+    cached.promise = mongoose.connect(uri, { bufferCommands: false, serverSelectionTimeoutMS: 8000 });
   }
 
   try {

@@ -22,19 +22,24 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     return { error: parsed.error.issues[0].message };
   }
 
-  await connectDb();
-  const existing = await User.findOne({ email: parsed.data.email.toLowerCase() });
-  if (existing) {
-    return { error: "That email is already registered. Sign in instead." };
-  }
+  try {
+    await connectDb();
+    const existing = await User.findOne({ email: parsed.data.email.toLowerCase() });
+    if (existing) {
+      return { error: "That email is already registered. Sign in instead." };
+    }
 
-  await User.create({
-    name: parsed.data.name,
-    email: parsed.data.email.toLowerCase(),
-    passwordHash: await bcrypt.hash(parsed.data.password, 10),
-    timezone: parsed.data.timezone,
-    onboarding: { identity: true, direction: false, constraints: false },
-  });
+    await User.create({
+      name: parsed.data.name,
+      email: parsed.data.email.toLowerCase(),
+      passwordHash: await bcrypt.hash(parsed.data.password, 10),
+      timezone: parsed.data.timezone,
+      onboarding: { identity: true, direction: false, constraints: false },
+    });
+  } catch (err) {
+    console.error("[signUpAction]", err);
+    return { error: "Couldn't reach the database. Try again in a moment." };
+  }
 
   await signIn("credentials", {
     email: parsed.data.email,
