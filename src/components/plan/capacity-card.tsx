@@ -3,22 +3,33 @@
 import { IconBolt, IconInfo } from "@/components/app/icons";
 import { hm } from "@/lib/sample/data";
 import { taskStore } from "@/lib/store/entities";
+import { profileStore } from "@/lib/store/profile";
 
-/** A default workday length, since there's no per-user setting for it yet -
- *  an honest, stated assumption rather than data pretending to be personal. */
+/** A default workday length, used only until the user has set their real
+ *  daily commitments (onboarding, or later in Settings) - an honest, stated
+ *  assumption rather than data pretending to be personal. */
 const ASSUMED_AVAILABLE_MIN = 8 * 60;
 
 /**
- * Planned is real: the total minutes of everything not yet done. Available
- * is a stated 8h assumption, not a fabricated personal stat - there's no
- * real per-user workday-length setting yet, so this says so rather than
- * inventing a precise-looking number.
+ * Planned is always real: the total minutes of everything not yet done.
+ * Available is the user's real committed hours (sleep/work/commute/meals/
+ * everything else, from onboarding) once they've set them; until then it
+ * falls back to a stated 8h assumption rather than inventing a precise
+ * personal-looking number.
  */
 export function CapacityCard() {
   const tasks = taskStore.useItems();
+  const profile = profileStore.useProfile();
+
+  const hasConstraints = profile.workH !== null;
+  const committedH = hasConstraints
+    ? (profile.sleepTargetH ?? 0) + (profile.workH ?? 0) + (profile.commuteH ?? 0) + (profile.mealsH ?? 0) + (profile.lifeH ?? 0)
+    : null;
+  const availableMin = committedH !== null ? Math.max(0, Math.round((24 - committedH) * 60)) : ASSUMED_AVAILABLE_MIN;
+
   const plannedMin = tasks.filter((t) => !t.done).reduce((sum, t) => sum + t.minutes, 0);
-  const pct = Math.round((plannedMin / ASSUMED_AVAILABLE_MIN) * 100);
-  const over = plannedMin > ASSUMED_AVAILABLE_MIN;
+  const pct = availableMin === 0 ? 100 : Math.round((plannedMin / availableMin) * 100);
+  const over = plannedMin > availableMin;
 
   return (
     <section className="rounded-2xl border border-line bg-surface p-5 shadow-[var(--shadow-card)]">
@@ -28,7 +39,14 @@ export function CapacityCard() {
             <IconBolt />
           </span>
           Your capacity
-          <span className="text-ink-faint" title="Available assumes an 8-hour workday - there's no per-user setting for this yet.">
+          <span
+            className="text-ink-faint"
+            title={
+              hasConstraints
+                ? "Available is 24h minus your sleep, work, commute, meals and other daily commitments from onboarding."
+                : "Available assumes an 8-hour workday - set your real daily commitments in onboarding or Settings."
+            }
+          >
             <IconInfo className="w-4 h-4" />
           </span>
         </p>
@@ -36,8 +54,10 @@ export function CapacityCard() {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <p className="text-[12.5px] text-ink-soft mb-0.5">Available (assumed)</p>
-          <p className="text-[22px] font-extrabold tnum tracking-[-0.02em]">{hm(ASSUMED_AVAILABLE_MIN)}</p>
+          <p className="text-[12.5px] text-ink-soft mb-0.5">
+            Available{hasConstraints ? "" : " (assumed)"}
+          </p>
+          <p className="text-[22px] font-extrabold tnum tracking-[-0.02em]">{hm(availableMin)}</p>
         </div>
         <div>
           <p className="text-[12.5px] text-ink-soft mb-0.5">Planned</p>
@@ -57,7 +77,7 @@ export function CapacityCard() {
 
       {over && (
         <p className="mt-3 text-[12.5px] text-rose">
-          {hm(plannedMin - ASSUMED_AVAILABLE_MIN)} over the assumed workday.
+          {hm(plannedMin - availableMin)} over {hasConstraints ? "your available time" : "the assumed workday"}.
         </p>
       )}
     </section>

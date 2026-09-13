@@ -1,8 +1,10 @@
 import { requireUser } from "@/lib/actions/context";
 import { ConstraintsForm } from "./form";
 
+const DEFAULT_PROFILE = { sleepTargetH: 7.5, workH: 8, commuteH: 1, mealsH: 2, lifeH: 2 };
+
 export default async function ConstraintsPage() {
-  const ctx = await requireUser();
+  await requireUser();
 
   return (
     <main className="min-h-dvh px-6 py-14">
@@ -18,7 +20,7 @@ export default async function ConstraintsPage() {
           honest rather than optimistic — an inflated number here produces plans
           you cannot finish.
         </p>
-        <ConstraintsForm profile={ctx.user.profile} timezone={ctx.user.timezone} />
+        <ConstraintsForm profile={DEFAULT_PROFILE} />
       </div>
     </main>
   );
