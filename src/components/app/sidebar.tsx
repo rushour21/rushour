@@ -7,8 +7,6 @@ import {
   IconBars,
   IconChart,
   IconCheck,
-  IconChevronLeft,
-  IconChevronRight,
   IconClock,
   IconGear,
   IconHeart,
@@ -19,7 +17,6 @@ import {
   IconSuitcase,
   IconTarget,
 } from "./icons";
-import { sidebarStore } from "@/lib/store/sidebar";
 
 const PRIMARY = [
   { href: "/dashboard", label: "Dashboard", Icon: IconHome },
@@ -96,18 +93,6 @@ export function Sidebar({
         </Link>
 
         {!collapsed && <PromoCard />}
-
-        <button
-          type="button"
-          onClick={sidebarStore.toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className={`mt-2 w-full flex items-center gap-2 py-2.5 rounded-xl text-[13px] font-medium text-ink-faint hover:bg-surface-2 hover:text-ink-soft transition-colors ${
-            collapsed ? "justify-center px-2.5" : "px-3.5"
-          }`}
-        >
-          {collapsed ? <IconChevronRight className="w-4 h-4" /> : <IconChevronLeft className="w-4 h-4" />}
-          {!collapsed && "Collapse"}
-        </button>
       </div>
     </div>
   );
