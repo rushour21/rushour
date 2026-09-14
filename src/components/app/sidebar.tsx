@@ -7,6 +7,8 @@ import {
   IconBars,
   IconChart,
   IconCheck,
+  IconChevronLeft,
+  IconChevronRight,
   IconClock,
   IconGear,
   IconHeart,
@@ -17,6 +19,7 @@ import {
   IconSuitcase,
   IconTarget,
 } from "./icons";
+import { sidebarStore } from "@/lib/store/sidebar";
 
 const PRIMARY = [
   { href: "/dashboard", label: "Dashboard", Icon: IconHome },
@@ -32,15 +35,21 @@ const PRIMARY = [
   { href: "/radar", label: "Radar", Icon: IconRadar },
 ];
 
-export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+export function Sidebar({
+  onNavigate,
+  collapsed = false,
+}: {
+  onNavigate?: () => void;
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <div className="h-full flex flex-col bg-surface border-r border-line">
-      <div className="px-5 h-[72px] flex items-center gap-2.5 shrink-0">
+      <div className={`h-[72px] flex items-center gap-2.5 shrink-0 ${collapsed ? "justify-center px-2" : "px-5"}`}>
         <Logo />
-        <span className="font-extrabold text-[19px] tracking-[-0.02em]">Rushour</span>
+        {!collapsed && <span className="font-extrabold text-[19px] tracking-[-0.02em]">Rushour</span>}
       </div>
 
       <nav className="px-3 flex-1 overflow-y-auto scroll-slim" aria-label="Main">
@@ -50,15 +59,18 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               <Link
                 href={href}
                 onClick={onNavigate}
+                title={collapsed ? label : undefined}
                 aria-current={isActive(href) ? "page" : undefined}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14.5px] transition-colors ${
+                className={`flex items-center gap-3 py-2.5 rounded-xl text-[14.5px] transition-colors ${
+                  collapsed ? "justify-center px-2.5" : "px-3.5"
+                } ${
                   isActive(href)
                     ? "bg-brand-soft text-brand font-semibold"
                     : "text-ink-soft hover:bg-surface-2 hover:text-ink font-medium"
                 }`}
               >
                 <Icon />
-                {label}
+                {!collapsed && label}
               </Link>
             </li>
           ))}
@@ -70,17 +82,32 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/settings"
           onClick={onNavigate}
-          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14.5px] font-medium transition-colors ${
+          title={collapsed ? "Settings" : undefined}
+          className={`flex items-center gap-3 py-2.5 rounded-xl text-[14.5px] font-medium transition-colors ${
+            collapsed ? "justify-center px-2.5" : "px-3.5"
+          } ${
             isActive("/settings")
               ? "bg-brand-soft text-brand font-semibold"
               : "text-ink-soft hover:bg-surface-2 hover:text-ink"
           }`}
         >
           <IconGear />
-          Settings
+          {!collapsed && "Settings"}
         </Link>
 
-        <PromoCard />
+        {!collapsed && <PromoCard />}
+
+        <button
+          type="button"
+          onClick={sidebarStore.toggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className={`mt-2 w-full flex items-center gap-2 py-2.5 rounded-xl text-[13px] font-medium text-ink-faint hover:bg-surface-2 hover:text-ink-soft transition-colors ${
+            collapsed ? "justify-center px-2.5" : "px-3.5"
+          }`}
+        >
+          {collapsed ? <IconChevronRight className="w-4 h-4" /> : <IconChevronLeft className="w-4 h-4" />}
+          {!collapsed && "Collapse"}
+        </button>
       </div>
     </div>
   );
