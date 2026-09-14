@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
+import { IconChevronLeft, IconChevronRight } from "./icons";
 import { sidebarStore } from "@/lib/store/sidebar";
 
 export function AppShell({
@@ -21,11 +22,20 @@ export function AppShell({
     <div className="min-h-dvh flex">
       {/* Desktop rail */}
       <aside
-        className={`hidden lg:block shrink-0 h-dvh sticky top-0 transition-[width] duration-200 ${
+        className={`hidden lg:block relative shrink-0 h-dvh sticky top-0 transition-[width] duration-200 ${
           collapsed ? "w-[84px]" : "w-[248px]"
         }`}
       >
         <Sidebar collapsed={collapsed} />
+
+        <button
+          type="button"
+          onClick={sidebarStore.toggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="absolute top-1/2 -right-3 -translate-y-1/2 z-10 w-6 h-6 rounded-full border border-line bg-surface shadow-[var(--shadow-card)] grid place-items-center text-ink-faint hover:text-ink hover:border-line-strong transition-colors"
+        >
+          {collapsed ? <IconChevronRight className="w-3.5 h-3.5" /> : <IconChevronLeft className="w-3.5 h-3.5" />}
+        </button>
       </aside>
 
       {/* Mobile drawer */}
