@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
+import { sidebarStore } from "@/lib/store/sidebar";
 
 export function AppShell({
   children,
@@ -14,12 +15,17 @@ export function AppShell({
   unread?: number;
 }) {
   const [navOpen, setNavOpen] = useState(false);
+  const collapsed = sidebarStore.useCollapsed();
 
   return (
     <div className="min-h-dvh flex">
       {/* Desktop rail */}
-      <aside className="hidden lg:block w-[248px] shrink-0 h-dvh sticky top-0">
-        <Sidebar />
+      <aside
+        className={`hidden lg:block shrink-0 h-dvh sticky top-0 transition-[width] duration-200 ${
+          collapsed ? "w-[84px]" : "w-[248px]"
+        }`}
+      >
+        <Sidebar collapsed={collapsed} />
       </aside>
 
       {/* Mobile drawer */}

@@ -17,6 +17,14 @@ export interface Profile {
   interestTags: string[];
   resumeText: string;
   resumeFileName: string | null;
+  /** Fixed daily commitments in hours, set once during onboarding (or later
+   *  in Settings) - null until set, so Plan's capacity card knows to fall
+   *  back to a stated assumption instead of showing a fake zero. */
+  sleepTargetH: number | null;
+  workH: number | null;
+  commuteH: number | null;
+  mealsH: number | null;
+  lifeH: number | null;
   updatedAt: number | null;
 }
 
@@ -32,6 +40,11 @@ const EMPTY: Profile = {
   interestTags: [],
   resumeText: "",
   resumeFileName: null,
+  sleepTargetH: null,
+  workH: null,
+  commuteH: null,
+  mealsH: null,
+  lifeH: null,
   updatedAt: null,
 };
 

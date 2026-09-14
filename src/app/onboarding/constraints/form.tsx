@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { saveConstraints } from "@/lib/actions/onboarding";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button, Card, ErrorNote, Label } from "@/components/ui";
-import { hm } from "@/lib/engine";
+import { hm } from "@/lib/sample/data";
+import { profileStore } from "@/lib/store/profile";
 
 const FIELDS = [
   { name: "sleepTargetH", label: "Sleep target", step: 0.5, max: 12 },
@@ -15,24 +16,33 @@ const FIELDS = [
 
 type Profile = Record<(typeof FIELDS)[number]["name"], number>;
 
-export function ConstraintsForm({
-  profile,
-  timezone,
-}: {
-  profile: Profile;
-  timezone: string;
-}) {
-  const [state, action, pending] = useActionState(saveConstraints, undefined);
+export function ConstraintsForm({ profile }: { profile: Profile }) {
+  const router = useRouter();
   const [values, setValues] = useState<Profile>(profile);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   const committedH = FIELDS.reduce((n, f) => n + (values[f.name] || 0), 0);
   const freeH = 24 - committedH;
   const impossible = freeH <= 0;
 
-  return (
-    <form action={action} className="flex flex-col gap-5">
-      <input type="hidden" name="timezone" value={timezone} />
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (impossible) return;
+    setError(null);
+    setPending(true);
+    profileStore.update({
+      sleepTargetH: values.sleepTargetH,
+      workH: values.workH,
+      commuteH: values.commuteH,
+      mealsH: values.mealsH,
+      lifeH: values.lifeH,
+    });
+    router.push("/dashboard");
+  }
 
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="flex flex-col gap-3">
         {FIELDS.map((f) => (
           <div key={f.name} className="grid grid-cols-[1fr_7rem] items-center gap-4">
@@ -73,7 +83,7 @@ export function ConstraintsForm({
         </p>
       </Card>
 
-      <ErrorNote>{state?.error}</ErrorNote>
+      <ErrorNote>{error}</ErrorNote>
 
       <Button type="submit" disabled={pending || impossible}>
         {pending ? "Saving…" : "Finish and clock in"}

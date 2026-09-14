@@ -1,8 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { draftDirection, saveDirection } from "@/lib/actions/onboarding";
+import { useRouter } from "next/navigation";
+import { draftDirection } from "@/lib/actions/onboarding";
 import { Button, Card, ErrorNote, Label, Pill } from "@/components/ui";
+import { goalStore } from "@/lib/store/entities";
+import { newId } from "@/lib/store/local-store";
+
+const TONES = ["sky", "rose", "amber", "violet"] as const;
+const MAX_ACTIVE_GOALS = 2;
 
 const CATEGORIES = [
   "Career",
@@ -21,6 +27,7 @@ interface Draft {
 }
 
 export function DirectionForm({ aiAvailable }: { aiAvailable: boolean }) {
+  const router = useRouter();
   const [text, setText] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
@@ -58,10 +65,35 @@ export function DirectionForm({ aiAvailable }: { aiAvailable: boolean }) {
       setError("Write at least one goal.");
       return;
     }
-    start(async () => {
-      const res = await saveDirection({ goals: cleaned });
-      if (res?.error) setError(res.error);
+
+    const active = cleaned.filter((d) => d.active);
+    if (active.length === 0) {
+      setError("Choose at least one goal to work on now.");
+      return;
+    }
+    if (active.length > MAX_ACTIVE_GOALS) {
+      setError(
+        `Choose at most ${MAX_ACTIVE_GOALS}. Everything else goes to Later — you can promote it once one is finished.`,
+      );
+      return;
+    }
+
+    // Only the ones chosen to work on now become real goals: "Later" has no
+    // home in the app yet (no backlog view), so saving it would just be
+    // silent data nobody could ever see again.
+    active.forEach((d) => {
+      goalStore.add({
+        id: newId("goal"),
+        title: d.title.trim(),
+        detail: "",
+        tags: d.category ? [d.category] : [],
+        priority: "Medium",
+        milestones: [],
+        tone: TONES[Math.floor(Math.random() * TONES.length)],
+      });
     });
+
+    router.push("/onboarding/constraints");
   }
 
   if (drafts) {

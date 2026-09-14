@@ -9,9 +9,6 @@ export interface Ctx {
     _id: unknown;
     name: string;
     timezone: string;
-    profile: { sleepTargetH: number; workH: number; commuteH: number; mealsH: number; lifeH: number };
-    planning: { utilization: number; multiplier: number; multiplierN: number };
-    readinessWeights: { sleep: number; energy: number; stress: number; recovery: number };
     onboarding: { identity: boolean; direction: boolean; constraints: boolean };
   };
 }
@@ -26,9 +23,4 @@ export async function requireUser(): Promise<Ctx> {
   if (!user) redirect("/sign-in");
 
   return { userId: session.user.id, user: user as unknown as Ctx["user"] };
-}
-
-/** Fixed daily commitments in minutes, from the profile. */
-export function fixedMinutesPerDay(p: Ctx["user"]["profile"]): number {
-  return Math.round((p.workH + p.commuteH + p.mealsH + p.lifeH) * 60);
 }
