@@ -32,7 +32,7 @@ export function AppShell({
           type="button"
           onClick={sidebarStore.toggle}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="absolute top-1/2 -right-3 -translate-y-1/2 z-10 w-6 h-6 rounded-full border border-line bg-surface shadow-[var(--shadow-card)] grid place-items-center text-ink-faint hover:text-ink hover:border-line-strong transition-colors"
+          className="absolute top-20 -right-3 -translate-y-1/2 z-10 w-6 h-6 rounded-full border border-line bg-surface shadow-[var(--shadow-card)] grid place-items-center text-ink-faint hover:text-ink hover:border-line-strong transition-colors"
         >
           {collapsed ? <IconChevronRight className="w-3.5 h-3.5" /> : <IconChevronLeft className="w-3.5 h-3.5" />}
         </button>
